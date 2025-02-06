@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+from typing import List, Optional
+from datetime import datetime
 
 class UserBase(BaseModel):
     username: str
@@ -12,3 +14,4 @@ class User(UserBase):
 
     class Config:
         orm_mode = True  
+
