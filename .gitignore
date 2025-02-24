@@ -1,10 +1,10 @@
-# Virtual environment
-venv/
-
-# Python bytecode
-__pycache__/
-*.pyc
-
-# Other common ignores
-.env
-*.log
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
