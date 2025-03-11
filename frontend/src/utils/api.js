@@ -36,10 +36,26 @@ export const signup = async (email, password) => {
     localStorage.setItem('token', data.token);
   };
 
+export const getSites = async () => {
+  const token = localStorage.getItem('token'); 
+  const response = await fetch(`${API_URL}/websites`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`, 
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch sites');
+  }
+
+  return response.json();
+};
+
 export const addSite = async (siteData) => {
   const token = localStorage.getItem('token'); 
 
-  const response = await fetch(`${API_URL}/websites`, {
+  const response = await fetch(`${API_URL}/websites/create`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -57,3 +73,6 @@ export const addSite = async (siteData) => {
 export const getToken = () => {
   return localStorage.getItem('token');
 };
+export const removeToken =()=>{
+  return localStorage.removeItem('token')
+}

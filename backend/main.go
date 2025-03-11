@@ -64,7 +64,7 @@ func main() {
 	// CORS settings
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173"},
-		AllowedMethods:   []string{"GET", "POST"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
 	})
@@ -72,13 +72,61 @@ func main() {
 	// routes
 	http.HandleFunc("/signup", signupHandler)
 	http.HandleFunc("/login", loginHandler)
-	http.HandleFunc("/websites", authMiddleware(addSiteHandler))
+	http.HandleFunc("/websites/create", authMiddleware(createWebsite))
+	http.HandleFunc("/websites", authMiddleware(getWebsites))
 	http.HandleFunc("/get-results", authMiddleware(getResultsHandler))
+
+	// http.HandleFunc("/websites/create", func(w http.ResponseWriter, r *http.Request) {
+	// 	if r.Method == http.MethodOptions {
+	// 		w.WriteHeader(http.StatusOK)
+	// 		return
+	// 	}
+	// 	authMiddleware(createWebsite)(w, r)
+	// })
 
 	handler := corsHandler.Handler(http.DefaultServeMux)
 
 	log.Println("Server is running on :8080")
 	log.Fatal(http.ListenAndServe(":8080", handler))
+}
+
+func getWebsites(w http.ResponseWriter, r *http.Request) {
+	// Query to get all websites from the database
+	rows, err := db.Query("SELECT id, name, url, is_active, created_at FROM websites")
+	if err != nil {
+		log.Printf("Error querying websites: %v", err)
+		http.Error(w, "Error querying websites", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	// Slice to hold all websites
+	var websites []Website
+
+	// Loop through rows and append websites to the slice
+	for rows.Next() {
+		var site Website
+		err := rows.Scan(&site.ID, &site.Name, &site.URL, &site.IsActive, &site.CreatedAt)
+		if err != nil {
+			log.Printf("Error scanning website: %v", err)
+			http.Error(w, "Error scanning website", http.StatusInternalServerError)
+			return
+		}
+		websites = append(websites, site)
+		println("test from oksana")
+	}
+
+	// Check for any error after iterating over rows
+	if err := rows.Err(); err != nil {
+		log.Printf("Error with rows: %v", err)
+		http.Error(w, "Error processing rows", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with the list of websites
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(websites)
 }
 
 // signup handler
@@ -200,7 +248,7 @@ func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 // Adding website
 //
-//	func addSiteHandler(w http.ResponseWriter, r *http.Request) {
+//	func createWebsite(w http.ResponseWriter, r *http.Request) {
 //		w.WriteHeader(http.StatusOK)
 //		json.NewEncoder(w).Encode(map[string]string{"message": "Website has been added"})
 //	}
@@ -213,7 +261,7 @@ type Website struct {
 }
 
 // Adding website
-func addSiteHandler(w http.ResponseWriter, r *http.Request) {
+func createWebsite(w http.ResponseWriter, r *http.Request) {
 	var site Website
 
 	// Decode the request body into the Website struct
