@@ -1,51 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginForm from './components/LoginForm';
 import SignupForm from './components/SignupForm';
-import AddSiteForm from './components/AddSiteForm';
-import { getToken } from './utils/api';
+import ScraperDashboard from './components/ScraperDashboard';
+import { getToken, removeToken } from './utils/api';
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(getToken() !== null);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!getToken());
 
-  const handleLogin = () => {
+  useEffect(() => {
+    setIsAuthenticated(!!getToken());
+  }, []);
+
+  const handleLogin = (token) => {
+    // saveToken(token);
     setIsAuthenticated(true);
   };
 
-  const handleSignup = () => {
-    setIsAuthenticated(true); 
+  const handleSignup = (token) => {
+    // saveToken(token);
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    removeToken();
+    setIsAuthenticated(false);
   };
 
   return (
     <Router>
       <Routes>
-        {/* Default route for '/' */}
-        <Route path="/" element={
-          isAuthenticated ? <Navigate to="/add-site" /> : <Navigate to="/login" />
-        } />
+        <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />
 
-        {/* Login route */}
-        <Route path="/login" element={
-          !isAuthenticated ? (
-            <LoginForm onLogin={handleLogin} />
-          ) : (
-            <Navigate to="/add-site" />
-          )
-        } />
+        <Route
+          path="/login"
+          element={isAuthenticated ? <Navigate to="/dashboard" /> : <LoginForm onLogin={handleLogin} />}
+        />
 
-        {/* Signup route */}
-        <Route path="/signup" element={
-          !isAuthenticated ? (
-            <SignupForm onSignup={handleSignup} />
-          ) : (
-            <Navigate to="/add-site" />
-          )
-        } />
+        <Route
+          path="/signup"
+          element={isAuthenticated ? <Navigate to="/dashboard" /> : <SignupForm onSignup={handleSignup} />}
+        />
 
-        {/* Add website route */}
-        <Route path="/add-site" element={
-          isAuthenticated ? <AddSiteForm /> : <Navigate to="/login" />
-        } />
+        <Route
+          path="/dashboard"
+          element={isAuthenticated ? <ScraperDashboard onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
       </Routes>
     </Router>
   );
