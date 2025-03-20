@@ -57,7 +57,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Log the received credentials for debugging
+	// Log for debugging
 	log.Printf("Received credentials: Email=%s, Password=%s\n", credentials.Email, credentials.Password)
 
 	// Searching for the user in the database

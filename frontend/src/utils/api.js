@@ -76,3 +76,20 @@ export const getToken = () => {
 export const removeToken =()=>{
   return localStorage.removeItem('token')
 }
+export const fetchTemplateById = async (id) => {
+  const token = localStorage.getItem('token'); 
+  const response = await fetch(`http://localhost:8080/templates/${id}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch template.');
+  }
+
+  return response.json();
+};
+
