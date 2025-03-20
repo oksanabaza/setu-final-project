@@ -27,7 +27,7 @@ const ScraperDashboard = ({ onLogout }) => {
       <ul>
         {websites.length > 0 ? (
           websites.map((site, index) => (
-            <li key={site.website_id || index}> {/* Correctly pass the index as the second argument */}
+            <li key={site.website_id || index}> 
               <a href={site.url} target="_blank" rel="noopener noreferrer">
                 {site.name}
               </a> - {site.is_active ? "Active" : "Inactive"}

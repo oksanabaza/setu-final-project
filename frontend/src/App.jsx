@@ -4,6 +4,7 @@ import LoginForm from './components/LoginForm';
 import SignupForm from './components/SignupForm';
 import ScraperDashboard from './components/ScraperDashboard';
 import { getToken, removeToken } from './utils/api';
+import './index.css';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!getToken());

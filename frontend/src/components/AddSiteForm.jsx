@@ -21,7 +21,7 @@ const AddSiteForm = ({ onSiteAdded }) => {
       setUrl('');
       setIsActive(true);
       alert('Site added successfully!');
-      onSiteAdded(); // Refresh the list
+      onSiteAdded(); 
     } catch (err) {
       setError(err.message);
     }
