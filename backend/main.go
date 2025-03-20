@@ -23,7 +23,7 @@ func main() {
 
 	// CORS settings
 	corsHandler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedOrigins:   []string{"http://localhost:5173", "http://localhost:3000"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
@@ -37,9 +37,14 @@ func main() {
 	http.HandleFunc("/get-results", middleware.AuthMiddleware(handlers.GetResultsHandler))
 	http.HandleFunc("/templates", middleware.AuthMiddleware(handlers.GetTemplates))          // GET /templates
 	http.HandleFunc("/templates/create", middleware.AuthMiddleware(handlers.CreateTemplate)) // POST /templates/create
-
+	http.HandleFunc("/scrape", middleware.AuthMiddleware(handlers.ScrapeHandler))
+	// http.HandleFunc("/scrape", handlers.ScrapeHandler)
 	handler := corsHandler.Handler(http.DefaultServeMux)
 
 	log.Println("Server is running on :8080")
+	// fmt.Println("Available routes:")
+	// http.DefaultServeMux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// 	fmt.Fprintf(w, "Route: %s", r.URL.Path)
+	// }))
 	log.Fatal(http.ListenAndServe(":8080", handler))
 }
