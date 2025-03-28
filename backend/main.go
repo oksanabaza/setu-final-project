@@ -62,6 +62,7 @@ func main() {
 	r.HandleFunc("/templates/create", middleware.AuthMiddleware(handlers.CreateTemplate)).Methods("POST")
 	r.HandleFunc("/scraping-tasks/create", middleware.AuthMiddleware(handlers.CreateScrapingTask)).Methods("POST")
 	r.HandleFunc("/scraping-task/{task_id}", middleware.AuthMiddleware(handlers.GetScrapingTaskHandler)).Methods("GET")
+	r.HandleFunc("/scraping-task/{taskID:[0-9]+}", middleware.AuthMiddleware(handlers.UpdateScrapingTaskHandler)).Methods("PUT")
 	r.HandleFunc("/scrape", middleware.AuthMiddleware(handlers.ScrapeHandler)).Methods("POST")
 	r.HandleFunc("/scraping-tasks", middleware.AuthMiddleware(handlers.GetAllScrapingTasksHandler)).Methods("GET")
 	r.HandleFunc("/templates/{id}", middleware.AuthMiddleware(handlers.GetTemplateByID)).Methods("GET")
