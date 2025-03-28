@@ -11,16 +11,21 @@ import (
 
 var DB *sql.DB
 
+// InitDB initializes the PostgreSQL database connection
 func InitDB() {
 	var err error
+
+	// Open a connection to the database using the URL from the config
 	DB, err = sql.Open("postgres", config.DBUrl)
 	if err != nil {
-		log.Fatal("Database connection failed:", err)
+		log.Fatalf("Database connection failed: %v", err) // Use log.Fatalf to log and exit immediately
 	}
 
+	// Check if the connection is successful by pinging the database
 	if err := DB.Ping(); err != nil {
-		log.Fatal("DB is not reachable:", err)
+		log.Fatalf("DB is not reachable: %v", err)
 	}
 
+	// Log success
 	log.Println("Connected to the database successfully")
 }

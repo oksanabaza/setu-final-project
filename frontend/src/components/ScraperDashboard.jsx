@@ -1,47 +1,27 @@
-import React, { useEffect, useState } from 'react';
-import { getSites } from '../utils/api';
-import AddSiteForm from './AddSiteForm';
+import React from 'react';
+import BaseLayout from './BaseLayout';
+import NivoCharts from './NivoCharts';
+import MyResponsiveSunburst from './SunburstCharts';
 
-const ScraperDashboard = ({ onLogout }) => {
-  const [websites, setWebsites] = useState([]);
-
-  useEffect(() => {
-    fetchWebsites();
-  }, []);
-
-  const fetchWebsites = async () => {
-    try {
-      const data = await getSites();
-      setWebsites(data);
-    } catch (err) {
-      console.error("Error fetching websites:", err);
-    }
-  };
-
+const App = ({ onLogout }) => {
   return (
-    <div>
-      <h1>Website Scraper Dashboard</h1>
-      <button onClick={onLogout}>Logout</button>
-
-      <h2>Website List</h2>
-      <ul>
-        {websites.length > 0 ? (
-          websites.map((site, index) => (
-            <li key={site.website_id || index}> {/* Correctly pass the index as the second argument */}
-              <a href={site.url} target="_blank" rel="noopener noreferrer">
-                {site.name}
-              </a> - {site.is_active ? "Active" : "Inactive"}
-            </li>
-          ))
-        ) : (
-          <p>No websites found.</p>
-        )}
-      </ul>
-
-      <h2>Add a New Website</h2>
-      <AddSiteForm onSiteAdded={fetchWebsites} />
-    </div>
+    <BaseLayout 
+      onLogout={onLogout}
+      breadcrumbs={[
+        { title: 'Home' },
+        { title: 'Dashboard' },
+      ]}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ width: '48%' }}>
+          <NivoCharts />
+        </div>
+        <div style={{ width: '48%' }}>
+          <MyResponsiveSunburst />
+        </div>
+      </div>
+    </BaseLayout>
   );
 };
 
-export default ScraperDashboard;
+export default App;

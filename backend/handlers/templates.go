@@ -1,11 +1,14 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fullstack-scraper/database"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 // Template structure
@@ -14,7 +17,7 @@ type Template struct {
 	WebsiteID    int             `json:"website_id"`
 	UserID       int             `json:"user_id"`
 	Name         string          `json:"name"`
-	Settings     json.RawMessage `json:"settings"` // Using json.RawMessage to handle JSON settings
+	Settings     json.RawMessage `json:"settings"`
 	CreatedAt    time.Time       `json:"created_at"`
 	ScrapingType string          `json:"scraping_type"`
 }
@@ -90,4 +93,39 @@ func CreateTemplate(w http.ResponseWriter, r *http.Request) {
 	// Send a success response with the new template including its auto-generated ID
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{"message": "Template added successfully", "template": template})
+}
+
+// GET /templates/{id}
+func GetTemplateByID(w http.ResponseWriter, r *http.Request) {
+	// Use mux to get the template ID from the URL path
+	vars := mux.Vars(r) // Get the path variables
+	id := vars["id"]    // Get the 'id' from the URL
+
+	// If the ID is missing, return a bad request error
+	if id == "" {
+		http.Error(w, "Template ID is required", http.StatusBadRequest)
+		return
+	}
+
+	// Query the database to get the template by its ID
+	var template Template
+	err := database.DB.QueryRow("SELECT id, website_id, user_id, name, settings, created_at, scraping_type FROM templates WHERE id = $1", id).
+		Scan(&template.ID, &template.WebsiteID, &template.UserID, &template.Name, &template.Settings, &template.CreatedAt, &template.ScrapingType)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// If no template found with the given ID, return a 404 error
+			http.Error(w, "Template not found", http.StatusNotFound)
+		} else {
+			// If there is another error, return a 500 internal server error
+			log.Printf("Error querying template by ID: %v", err)
+			http.Error(w, "Error querying template by ID", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Respond with the found template
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(template)
 }

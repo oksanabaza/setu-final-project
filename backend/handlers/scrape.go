@@ -28,7 +28,6 @@ type ScrapeResponse struct {
 	Error string            `json:"error,omitempty"`
 }
 
-// ScrapeHandler - основной эндпоинт
 func ScrapeHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Only POST supported", http.StatusMethodNotAllowed)
@@ -57,10 +56,10 @@ func ScrapeHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Scraping finished, results: %+v\n", results)
 
-	// 1. Сохраняем в файл
+	// save the file
 	saveToJSON(results)
 
-	// 2. Set the correct Content-Type header and return JSON response
+	// Set the correct Content-Type header and return JSON response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(results) // Send the JSON response

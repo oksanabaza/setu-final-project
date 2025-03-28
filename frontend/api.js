@@ -29,3 +29,11 @@ export async function addSite(token, url, xpath) {
   });
   return response.json();
 }
+export const fetchTemplateById = async (id) => {
+  const response = await fetch(`http://localhost:8080/templates/${id}`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch template.");
+  }
+  const data = await response.json();
+  return data;
+};
