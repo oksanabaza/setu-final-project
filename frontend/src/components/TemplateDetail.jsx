@@ -24,7 +24,7 @@ const TemplateDetails = ({ onLogout }) => {
           throw new Error('Failed to fetch template details.');
         }
         const templateData = await templateResponse.json();
-
+        console.log('Template Data:', templateData);
         const websitesResponse = await fetch('http://localhost:8080/websites', {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -64,16 +64,27 @@ const TemplateDetails = ({ onLogout }) => {
       console.error("Error: No valid links found.", template.settings.links);
       return;
     }
-  
-    const scrapePayload = {
-      links: linksArray, 
-      elements: {
-        title: "//h1",
-        description: "//meta[@name='description']/@content",
-      },
-      is_xpath: true,
-      type: "detailed",
-    };
+
+      let scrapePayload = {
+        links: linksArray,
+        is_xpath: template.is_xpath,
+        type: template.scraping_type,
+        wrapper: template.wrapper.String,
+      };
+
+      if (template.settings.elements && template.settings.elements.description) {
+        scrapePayload.elements = {
+          description: template.settings.elements.description,
+          price: template.settings.elements.price,
+          title: template.settings.elements.title,
+        };
+      } else {
+        scrapePayload.elements = {
+          description: template.settings.description,
+          price: template.settings.price,
+          title: template.settings.title,
+        };
+      }
   
     console.log("Sending Scrape Request:", JSON.stringify(scrapePayload, null, 2));
   
@@ -142,6 +153,8 @@ const TemplateDetails = ({ onLogout }) => {
         <p>{template.settings.description}</p>
         <p>{template.settings.links}</p>
         <p>{template.settings.scrapingLevel}</p>
+        <p><strong>wrapper:</strong> {template.wrapper.String}</p>
+        <p><strong>type:</strong> {template.scraping_type}</p>
 
         <Button type="primary" onClick={handleScrape} style={{ marginTop: 16 }}>
           Scrape Now

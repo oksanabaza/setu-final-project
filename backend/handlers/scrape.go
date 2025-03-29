@@ -29,21 +29,33 @@ type ScrapeResponse struct {
 }
 
 func ScrapeHandler(w http.ResponseWriter, r *http.Request) {
+
+	// Log the request method and headers
+	log.Printf("Received request: %s %s\n", r.Method, r.URL.Path)
+	for name, values := range r.Header {
+		log.Printf("Header: %s = %s\n", name, values)
+	}
+
+	// Check for correct HTTP method
 	if r.Method != http.MethodPost {
 		http.Error(w, "Only POST supported", http.StatusMethodNotAllowed)
 		return
 	}
 
+	// Decode the JSON body into ScrapeRequest
 	var req ScrapeRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid JSON request", http.StatusBadRequest)
+		log.Printf("Error decoding JSON: %v\n", err)
 		return
 	}
 
-	log.Printf("Received request: %+v\n", req)
+	log.Printf("Decoded request: %+v\n", req)
 
+	// Prepare results variable
 	var results []ScrapeResponse
 
+	// Choose the scraping method based on the type
 	switch req.Type {
 	case "shallow":
 		results = scrapeShallow(req)
@@ -56,16 +68,19 @@ func ScrapeHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Scraping finished, results: %+v\n", results)
 
-	// save the file
+	// Save the results to a JSON file
 	saveToJSON(results)
 
-	// Set the correct Content-Type header and return JSON response
-	w.Header().Set("Content-Type", "application/json")
+	// Set the correct Content-Type header and return the results as JSON
+	// w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(results) // Send the JSON response
+	err := json.NewEncoder(w).Encode(results)
+	if err != nil {
+		log.Printf("Error encoding response: %v\n", err)
+	}
 }
 
-// Save result to JSON file
+// Save the result to a JSON file
 func saveToJSON(results []ScrapeResponse) {
 	timestamp := time.Now().Format("2006-01-02_15-04-05")
 	filename := fmt.Sprintf("scraped_data_%s.json", timestamp)
@@ -86,8 +101,9 @@ func saveToJSON(results []ScrapeResponse) {
 	fmt.Println("Scraped data saved to", filename)
 }
 
-// Shallow Scraping
 func scrapeShallow(req ScrapeRequest) []ScrapeResponse {
+	fmt.Println("shallow triggered with request:", req)
+
 	c := colly.NewCollector()
 	var results []ScrapeResponse
 	var mu sync.Mutex
@@ -100,26 +116,47 @@ func scrapeShallow(req ScrapeRequest) []ScrapeResponse {
 			log.Println("Visiting:", url)
 
 			var data map[string]string
+			var foundWrapper bool // Track if wrapper is found
 
 			c.OnHTML("*", func(e *colly.HTMLElement) {
 				log.Println("Page loaded:", e.Request.URL.String())
 			})
 
-			c.OnHTML(req.Wrapper, func(e *colly.HTMLElement) {
-				log.Println("Wrapper matched:", req.Wrapper)
-				data = make(map[string]string)
-				for key, selector := range req.Elements {
-					text := e.ChildText(selector)
-					log.Printf("Extracted text for key %s: %s\n", key, text)
-					data[key] = text
+			// Check if Wrapper is specified and then match it
+			if req.Wrapper != "" {
+
+				c.OnHTML(req.Wrapper, func(e *colly.HTMLElement) {
+					foundWrapper = true
+					log.Println("Wrapper matched:", req.Wrapper)
+
+					data = make(map[string]string)
+					for key, selector := range req.Elements {
+						text := e.ChildText(selector)
+						if text == "" {
+							log.Printf("Warning: No text found for key '%s' using selector '%s'\n", key, selector)
+						}
+						data[key] = text
+					}
+					log.Printf("Extracted data from %s: %+v\n", url, data)
+				})
+			} else {
+				log.Printf("No wrapper specified for %s\n", url)
+			}
+
+			// Wrapper Not Found
+			c.OnScraped(func(r *colly.Response) {
+				if !foundWrapper && req.Wrapper != "" {
+					log.Printf("Error: Wrapper '%s' not found on page %s\n", req.Wrapper, url)
 				}
-				log.Printf("Extracted data from %s: %+v\n", url, data)
 			})
 
+			// Visiting Error
 			err := c.Visit(url)
 			if err != nil {
 				log.Printf("Error visiting URL %s: %v\n", url, err)
 			}
+
+			// Prepare response
 			res := ScrapeResponse{URL: url, Data: data}
 			if err != nil {
 				res.Error = err.Error()
@@ -135,15 +172,18 @@ func scrapeShallow(req ScrapeRequest) []ScrapeResponse {
 	return results
 }
 
-// Detailed Scraping
+// Detailed Scraping: Using colly and htmlquery for more complex scraping
 func scrapeDetailed(req ScrapeRequest) []ScrapeResponse {
+	fmt.Print("detailed triggered")
 	c := colly.NewCollector()
 	var results []ScrapeResponse
 
+	// General callback for page load
 	c.OnHTML("*", func(e *colly.HTMLElement) {
 		log.Println("Page loaded:", e.Request.URL.String())
 	})
 
+	// Callback for extracting HTML content
 	c.OnHTML("html", func(e *colly.HTMLElement) {
 		data := make(map[string]string)
 		htmlContent, err := e.DOM.Html()
@@ -152,12 +192,14 @@ func scrapeDetailed(req ScrapeRequest) []ScrapeResponse {
 			return
 		}
 
+		// Parse the HTML content using htmlquery
 		doc, err := htmlquery.Parse(strings.NewReader(htmlContent))
 		if err != nil {
 			log.Println("Error parsing HTML:", err)
 			return
 		}
 
+		// Extract data based on selectors
 		for key, selector := range req.Elements {
 			nodes := htmlquery.Find(doc, selector)
 			log.Printf("Found %d nodes for selector %s\n", len(nodes), selector)
@@ -170,6 +212,7 @@ func scrapeDetailed(req ScrapeRequest) []ScrapeResponse {
 		results = append(results, ScrapeResponse{URL: e.Request.URL.String(), Data: data})
 	})
 
+	// Visit each link in the request
 	for _, link := range req.Links {
 		log.Println("Visiting detailed URL:", link)
 		_ = c.Visit(link)

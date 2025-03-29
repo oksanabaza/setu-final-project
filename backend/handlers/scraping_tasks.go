@@ -12,7 +12,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// ScrapingTask represents a scraping task in the system
 type ScrapingTask struct {
 	TaskID        int          `json:"task_id"`
 	WebsiteID     int          `json:"website_id"`
@@ -36,7 +35,7 @@ type ScrapingTask struct {
 
 // Handler to fetch scraping task by ID
 func GetScrapingTaskHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r) // This extracts variables from the URL path
+	vars := mux.Vars(r)
 	taskIDStr := vars["task_id"]
 
 	if taskIDStr == "" {
@@ -116,14 +115,22 @@ func CreateScrapingTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Prepare SQL statement
-	sqlStatement := `INSERT INTO scraping_tasks (user_id, website_id, url, name, category, status, priority, 
-		last_error, schedule_cron, index_urls, created_at, updated_at) 
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
+	// Set default values if necessary
+	if task.CreatedAt.IsZero() {
+		task.CreatedAt = time.Now()
+	}
+	if task.UpdatedAt.IsZero() {
+		task.UpdatedAt = time.Now()
+	}
 
-	// Execute SQL
+	sqlStatement := `INSERT INTO scraping_tasks 
+	(user_id, website_id, url, name, category, status, priority, 
+	attempts_count, last_error, schedule_cron, index_urls, created_at, updated_at, template_id) 
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`
+
 	_, err := database.DB.Exec(sqlStatement, task.UserID, task.WebsiteID, task.URL, task.Name, task.Category, task.Status, task.Priority,
-		task.LastError, task.ScheduleCron, task.IndexURLs, task.CreatedAt, task.UpdatedAt)
+		task.AttemptsCount, task.LastError, task.ScheduleCron, task.IndexURLs, task.CreatedAt, task.UpdatedAt, task.TemplateID)
+
 	if err != nil {
 		log.Printf("Error creating scraping task: %v", err)
 		http.Error(w, "Error creating task", http.StatusInternalServerError)
@@ -192,8 +199,8 @@ func GetAllScrapingTasksHandler(w http.ResponseWriter, r *http.Request) {
 
 func UpdateScrapingTask(db *sql.DB, taskID int, userID int, websiteID int, name string, category string, status string,
 	priority int, lastError string, scheduleCron string, indexUrls string, updatedAt string) error {
-	sqlStatement := `UPDATE scraping_tasks SET user_id = $1, website_id = $2, name = $3, category = $4, 
-        status = $5, priority = $6, last_error = $7, schedule_cron = $8, index_urls = $9, updated_at = $10 
+	sqlStatement := `UPDATE scraping_tasks SET user_id = $1, website_id = $2, name = $3, category = $4,
+        status = $5, priority = $6, last_error = $7, schedule_cron = $8, index_urls = $9, updated_at = $10
         WHERE task_id = $11`
 
 	params := []interface{}{
@@ -220,50 +227,53 @@ func UpdateScrapingTask(db *sql.DB, taskID int, userID int, websiteID int, name 
 	return nil
 }
 
-// UpdateScrapingTaskHandler is a handler for updating a scraping task
+// UpdateScrapingTaskHandler handles updating a scraping task
 func UpdateScrapingTaskHandler(w http.ResponseWriter, r *http.Request) {
-	// Get taskID from the URL path (using mux)
 	vars := mux.Vars(r)
-	taskIDStr := vars["taskID"]
-
-	// Convert taskID to int
-	taskID, err := strconv.Atoi(taskIDStr)
+	taskID, err := strconv.Atoi(vars["task_id"])
 	if err != nil {
-		http.Error(w, "Invalid taskID", http.StatusBadRequest)
+		http.Error(w, "Invalid task_id", http.StatusBadRequest)
 		return
 	}
 
-	// Parse request body into struct
-	var taskUpdate struct {
-		UserID       int       `json:"user_id"`
-		WebsiteID    int       `json:"website_id"`
-		Name         string    `json:"name"`
-		Category     string    `json:"category"`
-		Status       string    `json:"status"`
-		Priority     int       `json:"priority"`
-		LastError    string    `json:"last_error"`
-		ScheduleCron string    `json:"schedule_cron"`
-		IndexUrls    string    `json:"index_urls"`
-		UpdatedAt    time.Time `json:"updated_at"`
-	}
-
-	// Decode the JSON request body
-	err = json.NewDecoder(r.Body).Decode(&taskUpdate)
-	if err != nil {
+	var task ScrapingTask
+	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
+	task.UpdatedAt = time.Now()
 
-	// Convert UpdatedAt to string
-	updatedAtStr := taskUpdate.UpdatedAt.Format(time.RFC3339)
+	sqlStatement := `UPDATE scraping_tasks SET user_id = $1, website_id = $2, name = $3, category = $4,
+		status = $5, priority = $6, last_error = $7, schedule_cron = $8, index_urls = $9, updated_at = $10
+		WHERE task_id = $11`
 
-	// Call UpdateScrapingTask to update the task in the database
-	err = UpdateScrapingTask(database.DB, taskID, taskUpdate.UserID, taskUpdate.WebsiteID, taskUpdate.Name, taskUpdate.Category, taskUpdate.Status, taskUpdate.Priority, taskUpdate.LastError, taskUpdate.ScheduleCron, taskUpdate.IndexUrls, updatedAtStr)
+	_, err = database.DB.Exec(sqlStatement, task.UserID, task.WebsiteID, task.Name, task.Category, task.Status,
+		task.Priority, task.LastError, task.ScheduleCron, task.IndexURLs, task.UpdatedAt, taskID)
 	if err != nil {
+		log.Printf("Error updating task: %v", err)
 		http.Error(w, "Error updating task", http.StatusInternalServerError)
 		return
 	}
 
-	// Respond with a success status
+	w.WriteHeader(http.StatusOK)
+}
+
+// DeleteScrapingTaskHandler handles deleting a scraping task
+func DeleteScrapingTaskHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	taskID, err := strconv.Atoi(vars["task_id"])
+	if err != nil {
+		http.Error(w, "Invalid task_id", http.StatusBadRequest)
+		return
+	}
+
+	sqlStatement := `DELETE FROM scraping_tasks WHERE task_id = $1`
+	_, err = database.DB.Exec(sqlStatement, taskID)
+	if err != nil {
+		log.Printf("Error deleting task: %v", err)
+		http.Error(w, "Error deleting task", http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 }

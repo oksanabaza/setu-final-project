@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Table, Spin, Alert, Tag } from 'antd';
-import { Link } from 'react-router-dom';
+import { Table, Spin, Alert, Tag, Button, Popconfirm } from 'antd';
+import { Link, useNavigate } from 'react-router-dom';
 import BaseLayout from './BaseLayout';
 
 const TemplateList = ({ onLogout }) => {
@@ -8,6 +8,7 @@ const TemplateList = ({ onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const token = useMemo(() => localStorage.getItem('token'), []);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -35,7 +36,24 @@ const TemplateList = ({ onLogout }) => {
 
     fetchTemplates();
   }, [token]);
+  const handleDelete = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:8080/scraping-task/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
+      if (!response.ok) {
+        throw new Error('Failed to delete the task');
+      }
+
+      setTemplates((prev) => prev.filter((task) => task.id !== id));
+    } catch (err) {
+      setError(err.message);
+    }
+  };
   if (loading) return <Spin size="large" tip="Loading templates..." />;
   if (error) return <Alert message="Error" description={error} type="error" />;
 
@@ -62,6 +80,23 @@ const TemplateList = ({ onLogout }) => {
       title: 'category',
       dataIndex: 'category',
       key: 'category',
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record) => (
+        <>
+          {/* <Button type="link" onClick={() => navigate(`/scraping-task/${record.task_id}`)}>Edit</Button> */}
+          <Popconfirm
+            title="Are you sure to delete this task?"
+            onConfirm={() => handleDelete(record.task_id)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button type="link" danger>Delete</Button>
+          </Popconfirm>
+        </>
+      ),
     },
   ];
 
