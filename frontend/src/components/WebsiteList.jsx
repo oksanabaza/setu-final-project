@@ -1,105 +1,156 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Table, Spin, Alert, Tag } from 'antd';
+import { Spin, Alert, Button, Modal, Form, Input, Switch, Card, Row, Col, notification } from 'antd';
 import BaseLayout from './BaseLayout';
 
 const WebsiteList = ({ onLogout }) => {
   const [websites, setWebsites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false); 
+  const [currentWebsite, setCurrentWebsite] = useState(null);
+  const [form] = Form.useForm();
 
- 
   const token = useMemo(() => localStorage.getItem('token'), []);
 
-  useEffect(() => {
-    const fetchWebsites = async () => {
-      try {
-        const response = await fetch('http://localhost:8080/websites', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        });
+   const fetchWebsites = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/websites', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch websites (Status: ${response.status})`);
-        }
-
-        const data = await response.json();
-
-        const websitesWithTags = data.map((website) => ({
-          ...website,
-          tags: ['Tech', 'Finance', 'Health'],
-        }));
-
-        setWebsites(websitesWithTags);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch websites (Status: ${response.status})`);
       }
-    };
 
-    fetchWebsites();
-  }, [token]);
+      const data = await response.json();
 
-  if (loading) return <Spin size="large" tip="Loading websites..." />;
-  if (error) return <Alert message="Error" description={error} type="error" />;
+      const sortedWebsites = data.sort((a, b) => a.id - b.id);
 
-
-  const getTagColor = (tag) => {
-    if (tag === 'Tech') return 'blue';
-    if (tag === 'Finance') return 'green';
-    if (tag === 'Health') return 'red';
-    return 'geekblue'; 
+      setWebsites(sortedWebsites);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
 
-  const columns = [
-    {
-      title: 'Website Name',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text, record) => (
-        <a href={record.url} target="_blank" rel="noopener noreferrer">
-          {text}
-        </a>
-      ),
-    },
-    {
-      title: 'Status',
-      dataIndex: 'is_active',
-      key: 'is_active',
-      render: (isActive) => (
-        <span style={{ color: isActive ? 'green' : 'red' }}>
-          {isActive ? 'Active' : 'Inactive'}
-        </span>
-      ),
-    },
-    {
-      title: 'URL',
-      dataIndex: 'url',
-      key: 'url',
-      render: (url) => <a href={url} target="_blank" rel="noopener noreferrer">{url}</a>,
-    },
-    {
-      title: 'Tags',
-      dataIndex: 'tags',
-      key: 'tags',
-      render: (_, { tags }) => (
-        <>
-          {tags.map((tag, index) => {
-            const color = getTagColor(tag);
-            return (
-              <Tag color={color} key={index}>
-                {tag.toUpperCase()}
-              </Tag>
-            );
-          })}
-        </>
-      ),
-    },
-  ];
+  useEffect(() => {
+    fetchWebsites();
+  }, [token]);
+
+  const handleAddWebsite = async (values) => {
+    try {
+      const response = await fetch('http://localhost:8080/websites/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(values),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Failed to add website (Status: ${response.status})`);
+      }
+  
+      await fetchWebsites();
+  
+      setIsModalVisible(false);
+      form.resetFields();
+      notification.success({
+        message: 'Website added',
+        description: 'The website was added successfully!',
+      });
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+  
+
+  const handleUpdateWebsite = async (values) => {
+    try {
+      const response = await fetch(`http://localhost:8080/websites/${currentWebsite.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(values),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update website (Status: ${response.status})`);
+      }
+
+      const updatedWebsite = await response.json();
+
+      await fetchWebsites();
+
+      setIsModalVisible(false);
+      form.resetFields();
+      notification.success({
+        message: 'Website updated',
+        description: 'The website was updated successfully!',
+      });
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+  
+  const handleDeleteWebsite = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:8080/websites/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete website (Status: ${response.status})`);
+      }
+
+      await fetchWebsites();
+
+      notification.success({
+        message: 'Website deleted',
+        description: 'The website was deleted successfully!',
+      });
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleUpdate = (website) => {
+    setIsEditMode(true); 
+    setCurrentWebsite(website);
+    form.setFieldsValue({
+      name: website.name,
+      url: website.url,
+      is_active: website.is_active,
+      tags: website.tags ? website.tags.join(', ') : '',
+      description: website.description || '',
+      category: website.category || '', 
+      image_url: website.image_url || '', 
+    });
+    setIsModalVisible(true);
+  };
+
+  const handleCreate = () => {
+    setIsEditMode(false); 
+    form.resetFields(); 
+    setIsModalVisible(true);
+  };
+
+  if (loading) return <Spin size="large" tip="Loading websites..." />;
+  if (error) return <Alert message="Error" description={error} type="error" />;
 
   return (
     <BaseLayout
@@ -112,14 +163,134 @@ const WebsiteList = ({ onLogout }) => {
     >
       <div>
         <h2>Website List</h2>
-        <Table
-          columns={columns}
-          dataSource={websites}
-          rowKey={(record) => record.website_id || record.url}
-          pagination={{ pageSize: 10 }}
-          scroll={{ x: 'max-content' }}
-        />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+          <Button
+            type="primary"
+            onClick={handleCreate}
+            style={{ marginBottom: 16 }}
+          >
+            Add Website
+          </Button>
+        </div>
+
+        {/* Websites Display as Cards */}
+        <Row gutter={16}>
+          {websites.map((website) => (
+            <Col span={8} key={website.id} style={{ marginBottom: 16 }}>
+              <Card
+                hoverable
+                cover={
+                  <img
+                    alt={website.name}
+                    src={website.image_url && website.image_url !== '' ? website.image_url : 'https://placehold.co/150x150'}
+                    style={{
+                      padding:"10px",
+                      width: 'auto',
+                      height: '150px',
+                      objectFit: 'contain',
+                      margin: '0 auto',
+                    }}
+                  />
+                }
+                actions={[
+                  <Button type="link" onClick={() => handleUpdate(website)}>
+                    Edit
+                  </Button>,
+                  <Button type="link" onClick={() => handleDeleteWebsite(website.id)} danger>
+                    Delete
+                  </Button>,
+                ]}
+              >
+                <Card.Meta
+                  title={<a href={website.url} target="_blank" rel="noopener noreferrer">{website.name}</a>}
+                  description={
+                    <>
+                      <div>
+                        <span style={{ color: website.is_active ? 'green' : 'red' }}>
+                          {website.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
+                      <div>
+                        {website.tags && website.tags.length > 0 && (
+                          <span>{'{' + website.tags.join(' ').toUpperCase() + '}'}</span>
+                        )}
+                      </div>
+                    </>
+                  }
+                />
+              </Card>
+            </Col>
+          ))}
+        </Row>
       </div>
+
+      {/* Add/Edit Website Modal */}
+      <Modal
+        title={isEditMode ? "Edit Website" : "Add New Website"}
+        visible={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={null}
+      >
+        <Form
+          form={form}
+          onFinish={isEditMode ? handleUpdateWebsite : handleAddWebsite}
+          layout="vertical"
+        >
+          <Form.Item
+            label="Website Name"
+            name="name"
+            rules={[{ required: true, message: 'Please input the website name!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Website URL"
+            name="url"
+            rules={[{ required: true, message: 'Please input the website URL!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Description"
+            name="description"
+            rules={[{ message: 'Please input the website description!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Category"
+            name="category"
+            rules={[{ message: 'Please input the website category!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Image URL"
+            name="image_url"
+          >
+            <Input placeholder="Optional: Add image URL" />
+          </Form.Item>
+          <Form.Item
+            label="Active"
+            name="is_active"
+            valuePropName="checked"
+          >
+            <Switch defaultChecked />
+          </Form.Item>
+          <Form.Item
+            label="Tags"
+            name="tags"
+            rules={[{  message: 'Please select tags!' }]}
+          >
+            <Input placeholder="e.g. Tech, Finance" />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit">
+              {isEditMode ? "Update Website" : "Add Website"}
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </BaseLayout>
   );
 };

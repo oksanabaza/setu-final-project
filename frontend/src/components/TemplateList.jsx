@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Table, Spin, Alert, Tag } from 'antd';
-import { Link } from 'react-router-dom';
+import { Table, Spin, Alert, Button, Popconfirm } from 'antd';
+import { Link, useNavigate } from 'react-router-dom';  
 import BaseLayout from './BaseLayout';
 
 const TemplateList = ({ onLogout }) => {
@@ -8,6 +8,7 @@ const TemplateList = ({ onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const token = useMemo(() => localStorage.getItem('token'), []);
+  const navigate = useNavigate();  
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -36,17 +37,40 @@ const TemplateList = ({ onLogout }) => {
     fetchTemplates();
   }, [token]);
 
+  const handleDelete = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:8080/templates/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete template (Status: ${response.status})`);
+      }
+
+      setTemplates(templates.filter((template) => template.id !== id));
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleEdit = (id) => {
+    navigate(`/templates/edit/${id}`); 
+  };
+
   if (loading) return <Spin size="large" tip="Loading templates..." />;
   if (error) return <Alert message="Error" description={error} type="error" />;
 
- 
   const columns = [
     {
       title: 'Template Name',
       dataIndex: 'name',
       key: 'name',
       render: (text, record) => (
-        <Link to={`/templates/${record.id}`}>{text}</Link> 
+        <Link to={`/templates/${record.id}`}>{text}</Link>
       ),
     },
     {
@@ -63,6 +87,29 @@ const TemplateList = ({ onLogout }) => {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record) => (
+        <span>
+          <Button
+            type="primary"
+            onClick={() => handleEdit(record.id)}
+            style={{ marginRight: 8 }}
+          >
+            Edit
+          </Button>
+          <Popconfirm
+            title="Are you sure you want to delete this template?"
+            onConfirm={() => handleDelete(record.id)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button type="danger">Delete</Button>
+          </Popconfirm>
+        </span>
+      ),
     },
   ];
 

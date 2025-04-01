@@ -1,5 +1,5 @@
-import React from 'react';
-import { Layout, Breadcrumb, Typography, Button, Space, Tooltip } from 'antd';
+import React, { useState } from 'react';
+import { Layout, Space, Button, Tooltip, Drawer, Typography, Badge } from 'antd';
 import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import SubNav from './SubNav';
 
@@ -7,6 +7,17 @@ const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
 
 const BaseLayout = ({ children, breadcrumbs, onLogout }) => {
+  const [open, setOpen] = useState(false);
+  const userName = localStorage.getItem('user_id');  
+
+  const showDrawer = () => {
+    setOpen(true);
+  };
+
+  const onClose = () => {
+    setOpen(false);
+  };
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
       {/* Header */}
@@ -23,7 +34,13 @@ const BaseLayout = ({ children, breadcrumbs, onLogout }) => {
 
         <Space style={{ marginLeft: 'auto' }}>
           <Tooltip title="User Information">
-            <Button type="text" icon={<UserOutlined style={{ fontSize: '20px', color: 'white' }} />} />
+            <Badge count={5} style={{ backgroundColor: '#52c41a' }}>
+              <Button
+                type="text"
+                icon={<UserOutlined style={{ fontSize: '20px', color: 'white' }} />}
+                onClick={showDrawer} 
+              />
+            </Badge>
           </Tooltip>
           <Tooltip title="Logout">
             <Button type="text" icon={<LogoutOutlined style={{ fontSize: '20px', color: 'white' }} />} onClick={onLogout} />
@@ -38,7 +55,7 @@ const BaseLayout = ({ children, breadcrumbs, onLogout }) => {
         </Sider>
 
         <Layout style={{ padding: '0 24px 24px' }}>
-          <Breadcrumb style={{ margin: '16px 0' }} items={breadcrumbs} />
+          {/* <Breadcrumb style={{ margin: '16px 0' }} items={breadcrumbs} /> */}
           <Content
             style={{
               padding: 24,
@@ -52,6 +69,17 @@ const BaseLayout = ({ children, breadcrumbs, onLogout }) => {
           </Content>
         </Layout>
       </Layout>
+
+      {/* Drawer for User Info */}
+      <Drawer
+        title="User Information"
+        onClose={onClose}
+        open={open}
+        width={300}
+      >
+        <p><strong>Username:</strong> {userName || 'Not Available'}</p>
+        <p>tasks </p>
+      </Drawer>
     </Layout>
   );
 };

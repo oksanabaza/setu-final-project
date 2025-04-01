@@ -14,7 +14,6 @@ import (
 	"github.com/rs/cors"
 )
 
-// Define ScrapingTask struct
 type ScrapingTask struct {
 	TaskID       int       `json:"task_id" gorm:"primaryKey"`
 	UserID       int       `json:"user_id"`
@@ -57,23 +56,22 @@ func main() {
 	r.HandleFunc("/login", auth.LoginHandler).Methods("POST")
 	r.HandleFunc("/websites/create", middleware.AuthMiddleware(handlers.CreateWebsite)).Methods("POST")
 	r.HandleFunc("/websites", middleware.AuthMiddleware(handlers.GetWebsites)).Methods("GET")
-	r.HandleFunc("/get-results", middleware.AuthMiddleware(handlers.GetResultsHandler)).Methods("GET")
+	r.HandleFunc("/websites/{id}", middleware.AuthMiddleware(handlers.UpdateWebsite)).Methods("PUT")
+	r.HandleFunc("/websites/{id}", middleware.AuthMiddleware(handlers.DeleteWebsite)).Methods("DELETE")
+	// r.HandleFunc("/get-results", middleware.AuthMiddleware(handlers.GetResultsHandler)).Methods("GET")
 	r.HandleFunc("/templates", middleware.AuthMiddleware(handlers.GetTemplates)).Methods("GET")
+	r.HandleFunc("/templates/{id}", middleware.AuthMiddleware(handlers.EditTemplate)).Methods("PUT")
+	r.HandleFunc("/templates/{id}", middleware.AuthMiddleware(handlers.DeleteTemplate)).Methods("DELETE")
 	r.HandleFunc("/templates/create", middleware.AuthMiddleware(handlers.CreateTemplate)).Methods("POST")
 	r.HandleFunc("/scraping-tasks/create", middleware.AuthMiddleware(handlers.CreateScrapingTask)).Methods("POST")
 	r.HandleFunc("/scraping-task/{task_id}", middleware.AuthMiddleware(handlers.GetScrapingTaskHandler)).Methods("GET")
-	r.HandleFunc("/scraping-task/{taskID:[0-9]+}", middleware.AuthMiddleware(handlers.UpdateScrapingTaskHandler)).Methods("PUT")
+	r.HandleFunc("/scraping-task/{task_id}", middleware.AuthMiddleware(handlers.UpdateScrapingTaskHandler)).Methods("PUT")
+	r.HandleFunc("/scraping-task/{task_id}", middleware.AuthMiddleware(handlers.DeleteScrapingTaskHandler)).Methods("DELETE")
 	r.HandleFunc("/scrape", middleware.AuthMiddleware(handlers.ScrapeHandler)).Methods("POST")
 	r.HandleFunc("/scraping-tasks", middleware.AuthMiddleware(handlers.GetAllScrapingTasksHandler)).Methods("GET")
 	r.HandleFunc("/templates/{id}", middleware.AuthMiddleware(handlers.GetTemplateByID)).Methods("GET")
-
-	// route for /test-scrape
-	// r.HandleFunc("/test-scrape", middleware.AuthMiddleware(handlers.StartScraping)).Methods("POST")
-	// r.HandleFunc("/test-scrape", func(w http.ResponseWriter, r *http.Request) {
-	// 	// Trigger the scraping logic directly
-	// 	handlers.StartScraping() // Ensure StartScraping is implemented correctly in handlers
-	// 	w.Write([]byte("Scraping task started!"))
-	// }).Methods("POST")
+	r.HandleFunc("/get-results", middleware.AuthMiddleware(handlers.GetResultsHandler)).Methods("GET")
+	r.HandleFunc("/post-results", middleware.AuthMiddleware(handlers.PostResultsHandler)).Methods("POST")
 
 	// Add CORS middleware
 	handler := corsHandler.Handler(r)
