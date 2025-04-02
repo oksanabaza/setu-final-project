@@ -161,15 +161,6 @@ console.log(scrapingTask,'scrapingTask')
   const websiteName = websites.find((site) => site.id === scrapingTask.website_id)?.name || 'Unknown';
 
   return (
-    <BaseLayout
-      onLogout={onLogout}
-      breadcrumbs={[
-        { title: 'Home' },
-        { title: 'Dashboard' },
-        { title: 'Tasks', path: '/scraping-tasks' },
-        { title: scrapingTask.name },
-      ]}
-    >
       <Card title={scrapingTask.name}>
         {editing ? (
           <Form
@@ -266,7 +257,6 @@ console.log(scrapingTask,'scrapingTask')
           Start Scraping
         </Button>
       </Card>
-    </BaseLayout>
   );
 };
 

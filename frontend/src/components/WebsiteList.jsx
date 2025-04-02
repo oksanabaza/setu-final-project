@@ -153,14 +153,15 @@ const WebsiteList = ({ onLogout }) => {
   if (error) return <Alert message="Error" description={error} type="error" />;
 
   return (
-    <BaseLayout
-      onLogout={onLogout}
-      breadcrumbs={[
-        { title: 'Home' },
-        { title: 'Dashboard' },
-        { title: 'Websites' },
-      ]}
-    >
+    // <BaseLayout
+    //   onLogout={onLogout}
+    //   breadcrumbs={[
+    //     { title: 'Home' },
+    //     { title: 'Dashboard' },
+    //     { title: 'Websites' },
+    //   ]}
+    // >
+    <>
       <div>
         <h2>Website List</h2>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
@@ -291,7 +292,8 @@ const WebsiteList = ({ onLogout }) => {
           </Form.Item>
         </Form>
       </Modal>
-    </BaseLayout>
+      </>
+    // </BaseLayout>
   );
 };
 

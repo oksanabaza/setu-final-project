@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Layout, Space, Button, Tooltip, Drawer, Typography, Badge } from 'antd';
 import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import SubNav from './SubNav';
+import { Outlet } from 'react-router-dom';
 
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
@@ -65,7 +66,8 @@ const BaseLayout = ({ children, breadcrumbs, onLogout }) => {
               borderRadius: 8,
             }}
           >
-            {children}
+            {/* {children} */}
+            <Outlet /> 
           </Content>
         </Layout>
       </Layout>

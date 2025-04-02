@@ -96,7 +96,7 @@ const EditTemplate = () => {
   if (error) return <Alert message="Error" description={error} type="error" />;
 
   return (
-    <BaseLayout>
+  <>
       <h2>Edit Template</h2>
       <Card title="Template Details" style={{ marginBottom: '20px' }}>
         <Descriptions bordered>
@@ -134,7 +134,7 @@ const EditTemplate = () => {
           Save Changes
         </Button>
       </div>
-    </BaseLayout>
+    </>
   );
 };
 

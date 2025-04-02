@@ -1,94 +1,57 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import LoginForm from './components/LoginForm';
 import SignupForm from './components/SignupForm';
 import ScraperDashboard from './components/ScraperDashboard';
 import { getToken, removeToken } from './utils/api';
-import './index.css';
 import WebsiteList from './components/WebsiteList';
-import TemplateList from './components/TemplateList'
-import TemplateDetail from './components/TemplateDetail'
-import  AddWebsiteForm from './components/AddWebsiteForm'
-import ScrapingTasks from './components/ScrapingTasks'
-import ScrapingTaskDetail from './components/ScrapingTaskDetail'
+import TemplateList from './components/TemplateList';
+import TemplateDetail from './components/TemplateDetail';
+import AddWebsiteForm from './components/AddWebsiteForm';
+import ScrapingTasks from './components/ScrapingTasks';
+import ScrapingTaskDetail from './components/ScrapingTaskDetail';
 import EditTemplate from './components/EditTemplate';
-import RecentTasks from './components/RecentTasks'
+import RecentTasks from './components/RecentTasks';
+import BaseLayout from './components/BaseLayout';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!getToken());
-  const [isLoggedOut, setIsLoggedOut] = useState(false); 
 
   useEffect(() => {
     setIsAuthenticated(!!getToken());
   }, []);
 
-  const handleLogin = (token) => {
-    // saveToken(token);
-    setIsAuthenticated(true);
-  };
-
-  const handleSignup = (token) => {
-    // saveToken(token);
-    setIsAuthenticated(true);
-  };
-
   const handleLogout = () => {
     removeToken();
     setIsAuthenticated(false);
-    setIsLoggedOut(true); 
   };
 
   return (
+    <Routes>
+      {/* Redirect to login or dashboard based on authentication */}
+      <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />
 
-      <Routes>
-        <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />
-        <Route
-          path="/login"
-          element={isAuthenticated ? <Navigate to="/dashboard" /> : <LoginForm onLogin={handleLogin} />}
-        />
-        <Route
-          path="/signup"
-          element={isAuthenticated ? <Navigate to="/dashboard" /> : <SignupForm onSignup={handleSignup} />}
-        />
-        <Route
-          path="/dashboard"
-          element={isAuthenticated ? <ScraperDashboard onLogout={handleLogout} /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/websites"
-          element={isAuthenticated ? <WebsiteList onLogout={handleLogout} /> : <Navigate to="/login" />}
-        />
-         <Route
-          path="/templates"
-          element={isAuthenticated ? <TemplateList onLogout={handleLogout} /> : <Navigate to="/templates" />}
-        />
-        <Route
-          path="/templates/:id"
-          element={isAuthenticated ? <TemplateDetail onLogout={handleLogout} /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/websites/create"
-          element={isAuthenticated ? <AddWebsiteForm onLogout={handleLogout} /> : <Navigate to="/websites/create" />}
-        />
-        <Route
-          path="/scraping-tasks"
-          element={isAuthenticated ? <ScrapingTasks onLogout={handleLogout} /> : <Navigate to="/scraping-tasks" />}
-        />
-        <Route
-          path="/scraping-task/:id"
-          element={isAuthenticated ? <ScrapingTaskDetail onLogout={handleLogout} /> : <Navigate to="/login" />}
-        />
-        <Route
-        path="/templates/edit/:id"
-        element={isAuthenticated ? <EditTemplate onLogout={handleLogout} /> : <Navigate to="/login" />}
-      />
-      <Route
-          path="/get-results"
-          element={isAuthenticated ? <RecentTasks /> : <Navigate to="/login" />}
-        />
-  
-      </Routes>
+      {/* Public Routes */}
+      <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <LoginForm />} />
+      <Route path="/signup" element={isAuthenticated ? <Navigate to="/dashboard" /> : <SignupForm />} />
 
+      {/* Protected Routes inside BaseLayout */}
+      {isAuthenticated ? (
+        <Route element={<BaseLayout onLogout={handleLogout} />}>
+          <Route path="/dashboard" element={<ScraperDashboard />} />
+          <Route path="/websites" element={<WebsiteList />} />
+          <Route path="/templates" element={<TemplateList />} />
+          <Route path="/templates/:id" element={<TemplateDetail />} />
+          <Route path="/websites/create" element={<AddWebsiteForm />} />
+          <Route path="/scraping-tasks" element={<ScrapingTasks />} />
+          <Route path="/scraping-task/:id" element={<ScrapingTaskDetail />} />
+          <Route path="/templates/edit/:id" element={<EditTemplate />} />
+          <Route path="/get-results" element={<RecentTasks />} />
+        </Route>
+      ) : (
+        <Route path="*" element={<Navigate to="/login" />} />
+      )}
+    </Routes>
   );
 };
 

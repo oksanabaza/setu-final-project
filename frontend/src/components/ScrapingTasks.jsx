@@ -101,14 +101,6 @@ const TemplateList = ({ onLogout }) => {
   ];
 
   return (
-    <BaseLayout
-      onLogout={onLogout}
-      breadcrumbs={[
-        { title: 'Home' },
-        { title: 'Dashboard' },
-        { title: 'Templates' },
-      ]}
-    >
       <div>
         <h2>Scraper Tasks List</h2>
         <Table
@@ -119,7 +111,6 @@ const TemplateList = ({ onLogout }) => {
           scroll={{ x: 'max-content' }}
         />
       </div>
-    </BaseLayout>
   );
 };
 

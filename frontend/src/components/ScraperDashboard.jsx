@@ -5,13 +5,6 @@ import MyResponsiveSunburst from './SunburstCharts';
 
 const App = ({ onLogout }) => {
   return (
-    <BaseLayout 
-      onLogout={onLogout}
-      breadcrumbs={[
-        { title: 'Home' },
-        { title: 'Dashboard' },
-      ]}
-    >
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <div style={{ width: '48%' }}>
           <NivoCharts />
@@ -20,7 +13,6 @@ const App = ({ onLogout }) => {
           <MyResponsiveSunburst />
         </div>
       </div>
-    </BaseLayout>
   );
 };
 
