@@ -13,6 +13,7 @@ import ScrapingTaskDetail from './components/ScrapingTaskDetail';
 import EditTemplate from './components/EditTemplate';
 import RecentTasks from './components/RecentTasks';
 import BaseLayout from './components/BaseLayout';
+import RecentTaskDetails from './components/RecentTaskDetails'
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!getToken());
@@ -51,6 +52,7 @@ const App = () => {
           <Route path="/scraping-task/:id" element={<ScrapingTaskDetail />} />
           <Route path="/templates/edit/:id" element={<EditTemplate />} />
           <Route path="/get-results" element={<RecentTasks />} />
+          <Route path="/get-results/:task_id" element={<RecentTaskDetails />} />
         </Route>
       ) : (
         <Route path="*" element={<Navigate to="/login" />} />

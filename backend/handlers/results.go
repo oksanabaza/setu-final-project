@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 type ScrapingResult struct {
@@ -19,7 +21,9 @@ type ScrapingResult struct {
 
 // GetResultsHandler handles GET requests for scraping results
 func GetResultsHandler(w http.ResponseWriter, r *http.Request) {
-	taskID := r.URL.Query().Get("task_id")
+	// Get the task_id from the URL path parameter
+	vars := mux.Vars(r)
+	taskID := vars["task_id"]
 	if taskID == "" {
 		http.Error(w, "task_id is required", http.StatusBadRequest)
 		return
@@ -64,9 +68,8 @@ func PostResultsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Log received data for debugging
-	log.Printf("Received TaskID: %d, Result: %s", result.TaskID, result.Result)
+	// log.Printf("Received TaskID: %d, Result: %s", result.TaskID, result.Result)
 
-	// Prepare the SQL query for inserting the result
 	sqlStatement := `INSERT INTO scraping_results (task_id, result, created_at, updated_at) 
 					 VALUES ($1, $2, NOW(), NOW())`
 
