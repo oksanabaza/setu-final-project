@@ -136,15 +136,6 @@ const TemplateDetails = ({ onLogout }) => {
   const websiteName = websites.find((site) => site.id === template.website_id)?.name || 'Unknown';
 
   return (
-    <BaseLayout
-      onLogout={onLogout}
-      breadcrumbs={[
-        { title: 'Home' },
-        { title: 'Dashboard' },
-        { title: 'Templates', path: '/templates' },
-        { title: template.name },
-      ]}
-    >
       <Card title={template.name}>
         <p><strong>ID:</strong> {template.id}</p>
         <p><strong>Website:</strong> {websiteName}</p>
@@ -169,7 +160,6 @@ const TemplateDetails = ({ onLogout }) => {
           </>
         )}
       </Card>
-    </BaseLayout>
   );
 };
 
