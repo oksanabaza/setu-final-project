@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import { Card, Spin, Alert, Button, message } from 'antd';
 import BaseLayout from './BaseLayout';
+import { useParams, useNavigate } from 'react-router-dom';
 
 const TemplateDetails = ({ onLogout }) => {
   const { id } = useParams();
@@ -11,6 +11,7 @@ const TemplateDetails = ({ onLogout }) => {
   const [error, setError] = useState(null);
   const [scrapeResult, setScrapeResult] = useState(null);
   const token = localStorage.getItem('token');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,7 +47,45 @@ const TemplateDetails = ({ onLogout }) => {
 
     fetchData();
   }, [id, token]);
-
+  const flattenObject = (obj, parentKey = '', res = {}) => {
+    for (let key in obj) {
+      const propName = parentKey ? `${parentKey}.${key}` : key;
+      if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+        flattenObject(obj[key], propName, res);
+      } else {
+        res[propName] = Array.isArray(obj[key]) ? obj[key].join('; ') : obj[key];
+      }
+    }
+    return res;
+  };
+  
+  const handleDownloadCSV = () => {
+    if (!scrapeResult || !Array.isArray(scrapeResult)) {
+      message.error("Scrape result is not an array.");
+      return;
+    }
+  
+    const flatData = scrapeResult.map(item => flattenObject(item));
+    const headers = [...new Set(flatData.flatMap(obj => Object.keys(obj)))];
+  
+    const csvRows = [
+      headers.join(","), 
+      ...flatData.map(row =>
+        headers.map(header =>
+          `"${(row[header] ?? "").toString().replace(/"/g, '""')}"`
+        ).join(",")
+      )
+    ];
+  
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `scraped_data_${new Date().toISOString()}.csv`;
+    link.click();
+  };
+  
+  
   const handleScrape = async () => {
     if (!template) {
       message.error("Template data is missing.");
@@ -136,7 +175,14 @@ const TemplateDetails = ({ onLogout }) => {
   const websiteName = websites.find((site) => site.id === template.website_id)?.name || 'Unknown';
 
   return (
-      <Card title={template.name}>
+      <Card title={template.name}  extra={
+        <Button
+          type="default"
+          onClick={() => navigate(`/templates/edit/${template.id}`)}
+        >
+          Edit Template
+        </Button>
+      }>
         <p><strong>ID:</strong> {template.id}</p>
         <p><strong>Website:</strong> {websiteName}</p>
         <p><strong>Status:</strong> {template.is_active ? 'Active' : 'Inactive'}</p>
@@ -150,15 +196,26 @@ const TemplateDetails = ({ onLogout }) => {
         <Button type="primary" onClick={handleScrape} style={{ marginTop: 16 }}>
           Scrape Now
         </Button>
-
-        {scrapeResult && (
-          <>
-            <pre style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{JSON.stringify(scrapeResult, null, 2)}</pre>
-            <Button type="default" onClick={handleDownload} style={{ marginTop: 8 }}>
-              Download JSON
-            </Button>
-          </>
-        )}
+         {scrapeResult && (
+    <Card
+      type="inner"
+      title="Scrape Result"
+      style={{
+        marginTop: 16,
+        backgroundColor: '#f6f8fa',
+        borderRadius: 8,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+      }}
+    >
+      <pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(scrapeResult, null, 2)}</pre>
+      <Button type="default" onClick={handleDownload} style={{ marginTop: 8 }}>
+        Download JSON
+      </Button>
+      <Button type="default" onClick={handleDownloadCSV} style={{ marginTop: 8, marginLeft: 8 }}>
+        Download CSV
+      </Button>
+    </Card>
+  )}
       </Card>
   );
 };
