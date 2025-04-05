@@ -14,7 +14,7 @@ const SubNav = ({ currentTab, setCurrentTab }) => {
       mode="inline"
       onClick={handleMenuClick}
       selectedKeys={[currentTab]}
-      style={{ height: '100%', borderRight: 0 }}
+      style={{ height: '100%', borderRight: 0 , color:'#4c4b52'}}
     >
        <Menu.SubMenu key="sub2" icon={<LaptopOutlined />} title="Administration">
           <Menu.Item key="websites">

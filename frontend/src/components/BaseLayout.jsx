@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layout, Space, Button, Tooltip, Drawer, Typography, Badge } from 'antd';
+import { Layout, Space, Button, Tooltip, Drawer, Typography, Badge, Card } from 'antd';
 import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import SubNav from './SubNav';
 import { Outlet } from 'react-router-dom';
@@ -30,21 +30,21 @@ const BaseLayout = ({ children, breadcrumbs, onLogout }) => {
           padding: '0 20px',
         }}
       >
-        <img src="/icon.png" alt="Logo" style={{ height: '40px', marginRight: '10px' }} />
-        <Title level={3} style={{ color: 'white', margin: 0 }}>ScrapeTrack</Title>
+        {/* <img src="/icon3.png" alt="Logo" style={{ height: '40px', marginRight: '10px', transform: 'rotate(10deg)' }} /> */}
+        <Title level={1} class='caveat-font' style={{ color: '#ffc76f', margin: 0 }}>ScrapeTrack</Title>
 
         <Space style={{ marginLeft: 'auto' }}>
           <Tooltip title="User Information">
-            <Badge count={5} style={{ backgroundColor: '#52c41a' }}>
+            <Badge count={5} style={{ backgroundColor: '#ffc76f', color:"#001529" , borderColor:'#001529'}}>
               <Button
                 type="text"
-                icon={<UserOutlined style={{ fontSize: '20px', color: 'white' }} />}
+                icon={<UserOutlined style={{ fontSize: '20px', color: '#ffc76f' }} />}
                 onClick={showDrawer} 
               />
             </Badge>
           </Tooltip>
           <Tooltip title="Logout">
-            <Button type="text" icon={<LogoutOutlined style={{ fontSize: '20px', color: 'white' }} />} onClick={onLogout} />
+            <Button type="text" icon={<LogoutOutlined style={{ fontSize: '20px', color: '#ffc76f' }} />} onClick={onLogout} />
           </Tooltip>
         </Space>
       </Header>
@@ -56,6 +56,8 @@ const BaseLayout = ({ children, breadcrumbs, onLogout }) => {
         </Sider>
 
         <Layout style={{ padding: '0 24px 24px' }}>
+          {/* <div>test</div> */}
+          <Card style={{marginTop:30}}>Conetnt</Card>
           {/* <Breadcrumb style={{ margin: '16px 0' }} items={breadcrumbs} /> */}
           <Content
             style={{
@@ -64,6 +66,7 @@ const BaseLayout = ({ children, breadcrumbs, onLogout }) => {
               minHeight: 280,
               background: '#fff',
               borderRadius: 8,
+              marginTop: 30,
             }}
           >
             {/* {children} */}
