@@ -31,7 +31,9 @@ const SubNav = ({ currentTab, setCurrentTab }) => {
         <Menu.Item key="output"><Link to="/get-results">Outputs</Link></Menu.Item>
       </Menu.SubMenu>
       <Menu.SubMenu key="sub4" icon={<BarChartOutlined />} title="Statistics">
-        <Menu.Item key="email-alerts">Charts</Menu.Item>
+        <Menu.Item key="charts">
+        <Link to="/charts">Charts</Link>
+        </Menu.Item>
       </Menu.SubMenu>
       <Menu.SubMenu key="sub5" icon={<NotificationOutlined />} title="Notifications">
         <Menu.Item key="push-notifications">Push Notifications</Menu.Item>

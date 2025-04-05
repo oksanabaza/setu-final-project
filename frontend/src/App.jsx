@@ -14,6 +14,7 @@ import EditTemplate from './components/EditTemplate';
 import RecentTasks from './components/RecentTasks';
 import BaseLayout from './components/BaseLayout';
 import RecentTaskDetails from './components/RecentTaskDetails'
+import Charts from './components/Charts'
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!getToken());
@@ -49,6 +50,7 @@ const App = () => {
           <Route path="/templates/edit/:id" element={<EditTemplate />} />
           <Route path="/get-results" element={<RecentTasks />} />
           <Route path="/get-results/:task_id" element={<RecentTaskDetails />} />
+          <Route path="/charts" element={<Charts />} />
         </Route>
       ) : (
         <Route path="*" element={<Navigate to="/login" />} />

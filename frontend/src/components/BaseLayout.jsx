@@ -36,6 +36,7 @@ const BaseLayout = ({ onLogout }) => {
     '/templates/edit/:id': 'Edit Template',
     '/get-results': 'Recent Tasks',
     '/get-results/:task_id': 'Recent Task Details',
+    '/charts': 'Charts',
   };
 
   // Function to generate breadcrumbs dynamically
