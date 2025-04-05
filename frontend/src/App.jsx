@@ -38,11 +38,7 @@ const App = () => {
 
       {/* Protected Routes inside BaseLayout */}
       {isAuthenticated ? (
-        <Route element={<BaseLayout onLogout={handleLogout}   breadcrumbs={[
-          { title: 'Home' },
-          { title: 'Dashboard' },
-          { title: 'Websites' },
-        ]}/>}>
+        <Route element={<BaseLayout onLogout={handleLogout}  />}>
           <Route path="/dashboard" element={<ScraperDashboard />} />
           <Route path="/websites" element={<WebsiteList />} />
           <Route path="/templates" element={<TemplateList />} />
