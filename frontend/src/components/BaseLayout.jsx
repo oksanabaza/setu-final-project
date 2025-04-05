@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Space, Button, Tooltip, Drawer, Typography, Badge, Breadcrumb, Card } from 'antd';
-import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
+import { Layout, Space, Button, Tooltip, Drawer, Typography, Badge, Breadcrumb, Card, ConfigProvider } from 'antd';
+import { UserOutlined, LogoutOutlined, SunOutlined, MoonOutlined } from '@ant-design/icons';
 import SubNav from './SubNav';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { theme } from 'antd';
 
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
 
 const BaseLayout = ({ onLogout }) => {
   const [open, setOpen] = useState(false);
-  const location = useLocation(); 
-  const navigate = useNavigate(); 
-  const userName = localStorage.getItem('user_id');  
+  const [isDarkMode, setIsDarkMode] = useState(false); 
+  const location = useLocation();
+  const navigate = useNavigate();
+  const userName = localStorage.getItem('user_id');
+  const { darkAlgorithm, defaultAlgorithm } = theme;
 
   const showDrawer = () => {
     setOpen(true);
@@ -42,7 +45,6 @@ const BaseLayout = ({ onLogout }) => {
       const currentPath = '/' + pathnames.slice(0, index + 1).join('/');
 
       let breadcrumbName = breadcrumbNameMap[currentPath] || currentPath;
-
       Object.keys(breadcrumbNameMap).forEach(route => {
         const regex = new RegExp(route.replace(/:\w+/g, '([\\w-]+)'));
         const match = currentPath.match(regex);
@@ -57,76 +59,93 @@ const BaseLayout = ({ onLogout }) => {
     return [{ title: 'Home', path: '/' }, ...breadcrumbs];
   };
 
+  const handleClick = () => {
+    setIsDarkMode((previousValue) => !previousValue);
+  };
+
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      {/* Header */}
-      <Header
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'flex-start',
-          padding: '0 20px',
-        }}
-      >
-        <Title level={1} className='caveat-font' style={{ color: '#ffc76f', margin: 0 }}>ScrapeTrack</Title>
+    <ConfigProvider
+      theme={{
+        algorithm: isDarkMode ? darkAlgorithm : defaultAlgorithm, 
+      }}
+    >
+      <Layout style={{ minHeight: '100vh' }}>
+        {/* Header */}
+        <Header
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            padding: '0 20px',
+          }}
+        >
+          <Title level={1} className='caveat-font' style={{ color: '#ffc76f', margin: 0 }}>
+            ScrapeTrack
+          </Title>
 
-        <Space style={{ marginLeft: 'auto' }}>
-          <Tooltip title="User Information">
-            <Badge count={5} style={{ backgroundColor: '#ffc76f', color:"#001529", borderColor:'#001529' }}>
-              <Button
-                type="text"
-                icon={<UserOutlined style={{ fontSize: '20px', color: '#ffc76f' }} />}
-                onClick={showDrawer} 
-              />
-            </Badge>
-          </Tooltip>
-          <Tooltip title="Logout">
-            <Button type="text" icon={<LogoutOutlined style={{ fontSize: '20px', color: '#ffc76f' }} />} onClick={onLogout} />
-          </Tooltip>
-        </Space>
-      </Header>
+          <Space style={{ marginLeft: 'auto' }}>
+            {/* Theme Toggle Button */}
+            <div onClick={handleClick} style={{ cursor: "pointer" }}>
+          {isDarkMode ? (
+            <SunOutlined style={{ fontSize: "24px", color: "#ffc76f" }} />
+          ) : (
+            <MoonOutlined style={{ fontSize: "24px", color: "#ffc76f" }} />
+          )}
+        </div>
 
-      {/* Layout with Sidebar & Content */}
-      <Layout>
-        <Sider width={200} style={{ background: '#fff' }}>
-          <SubNav />
-        </Sider>
+            <Tooltip title="User Information">
+              <Badge count={5} style={{ backgroundColor: '#ffc76f', color: '#001529', borderColor: '#001529' }}>
+                <Button
+                  type="text"
+                  icon={<UserOutlined style={{ fontSize: '20px', color: '#ffc76f' }} />}
+                  onClick={showDrawer}
+                />
+              </Badge>
+            </Tooltip>
 
-        <Layout style={{ padding: '0 24px 24px' }}>
-          <Breadcrumb style={{ margin: '16px 0' }}>
-            {getBreadcrumbs().map((breadcrumb, index) => (
-              <Breadcrumb.Item key={index}>
-                <Link to={breadcrumb.path}>{breadcrumb.title}</Link>
-              </Breadcrumb.Item>
-            ))}
-          </Breadcrumb>
-          <Card style={{ marginTop: 30 }}>Content</Card>
-          <Content
-            style={{
-              padding: 24,
-              margin: 0,
-              minHeight: 280,
-              background: '#fff',
-              borderRadius: 8,
-              marginTop: 30,
-            }}
-          >
-            <Outlet /> {/* Render the child routes here */}
-          </Content>
+            <Tooltip title="Logout">
+              <Button type="text" icon={<LogoutOutlined style={{ fontSize: '20px', color: '#ffc76f' }} />} onClick={onLogout} />
+            </Tooltip>
+          </Space>
+        </Header>
+
+        {/* Layout with Sidebar & Content */}
+        <Layout>
+          <Sider width={200} style={{ background: '#fff' }}>
+            <SubNav />
+          </Sider>
+
+          <Layout style={{ padding: '0 24px 24px' }}>
+            <Breadcrumb style={{ margin: '16px 0' }}>
+              {getBreadcrumbs().map((breadcrumb, index) => (
+                <Breadcrumb.Item key={index}>
+                  <Link to={breadcrumb.path}>{breadcrumb.title}</Link>
+                </Breadcrumb.Item>
+              ))}
+            </Breadcrumb>
+            <Card style={{ marginTop: 30 }}>Content</Card>
+            <Content
+              style={{
+                padding: 24,
+                margin: 0,
+                minHeight: 280,
+                background: isDarkMode ? "#1d1d1d" : "#fff", 
+                borderRadius: 8,
+                marginTop: 30,
+              }}
+            >
+              <Outlet /> {/* Render the child routes here */}
+            </Content>
+          </Layout>
         </Layout>
-      </Layout>
 
-      {/* Drawer for User Info */}
-      <Drawer
-        title="User Information"
-        onClose={onClose}
-        open={open}
-        width={300}
-      >
-        <p><strong>Username:</strong> {userName || 'Not Available'}</p>
-        <p>tasks</p>
-      </Drawer>
-    </Layout>
+        {/* Drawer for User Info */}
+        <Drawer title="User Information" onClose={onClose} open={open} width={300}>
+          <p><strong>Username:</strong> {userName || 'Not Available'}</p>
+          <p>tasks</p>
+        </Drawer>
+      </Layout>
+    </ConfigProvider>
   );
 };
 
