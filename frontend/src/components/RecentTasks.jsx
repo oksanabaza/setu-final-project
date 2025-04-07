@@ -1,49 +1,33 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Table, Spin, Alert, Typography, Tag, Progress } from "antd";
+import dayjs from "dayjs";
+
+const { Title } = Typography;
 
 const RecentTasks = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     const fetchRecentTasks = async () => {
       try {
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
-
-        const taskId = 6; 
-        const response = await fetch(`http://localhost:8080/get-results?task_id=${taskId}`, {
-          method: 'GET',
+        const response = await fetch("http://localhost:8080/scraping-tasks", {
+          method: "GET",
           headers: {
-            'Authorization': `Bearer ${token}`, 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch tasks');
+          throw new Error(`Failed to fetch tasks (Status: ${response.status})`);
         }
 
         const data = await response.json();
-
-
-        if (data.Result) {
-          try {
-            const parsedResult = JSON.parse(data.Result);
-
-            if (Array.isArray(parsedResult)) {
-              setTasks(parsedResult);
-            } else {
-              throw new Error('Result is not an array');
-            }
-          } catch (err) {
-            throw new Error('Error parsing Result');
-          }
-        } else {
-          throw new Error('Result field is missing in response');
-        }
+        setTasks(data);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -55,34 +39,79 @@ const RecentTasks = () => {
   }, [token]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div style={{ textAlign: "center", padding: "40px" }}>
+        <Spin size="large" />
+      </div>
+    );
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return (
+      <Alert 
+        message="Error" 
+        description={error} 
+        type="error" 
+        showIcon 
+        style={{ margin: "20px" }} 
+      />
+    );
   }
 
+  const columns = [
+    {
+      title: "Task Name",
+      dataIndex: "name",
+      key: "name",
+      render: (text, record) => <Link to={`/get-results/${record.task_id}`}>{text}</Link>,
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => {
+        const statusColor = status === "Completed" ? "green" : status === "Failed" ? "red" : "blue";
+        return <Tag color={statusColor}>{status}</Tag>;
+      },
+    },
+    {
+      title: "Category",
+      dataIndex: "category",
+      key: "category",
+    },
+    {
+      title: "Progress",
+      dataIndex: "progress",
+      key: "progress",
+      render: (progress, record) => (
+        <Progress percent={progress} status={record.status === "Failed" ? "exception" : "active"} />
+      ),
+    },
+    {
+      title: "Created At",
+      dataIndex: "created_at",
+      key: "created_at",
+      render: (date) => dayjs(date).format("YYYY-MM-DD HH:mm"),
+    },
+    {
+      title: "Website",
+      dataIndex: "website_url",
+      key: "website_url",
+      render: (url) => <a href={url} target="_blank" rel="noopener noreferrer">{url}</a>,
+    },
+  ];
+
   return (
-    <div>
-      {/* <h2>Recent Tasks</h2>
-      {tasks.length === 0 ? (
-        <p>No recent tasks found</p>
-      ) : (
-        <ul>
-          {tasks.map((task) => (
-            <>
-            <li key={task.task_id}>
-              <Link to={`/scraping-task/${task.task_id}`}>
-                Task ID: {task.task_id} - Created At: {task.created_at}
-              </Link>
-            </li>
-            
-            </>
-          ))}
-        </ul>
-      )} */}
-      output
-    </div>
+    <>
+    {/* // <div style={{ maxWidth: 1000, margin: "20px auto", padding: "20px" }}> */}
+      {/* <Title level={3} style={{ textAlign: "center", marginBottom: "20px" }}>Recent Tasks</Title> */}
+      <Typography.Title level={2} style={{ marginBottom: 48 }}>Recent Tasks</Typography.Title>
+      <Table 
+        columns={columns} 
+        dataSource={tasks.map((task, index) => ({ ...task, key: index }))} 
+        pagination={{ pageSize: 5 }} 
+      /></>
+  
   );
 };
 

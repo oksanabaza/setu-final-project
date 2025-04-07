@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/antchfx/htmlquery"
 	"github.com/gocolly/colly/v2"
 )
@@ -25,37 +26,23 @@ type ScrapeRequest struct {
 type ScrapeResponse struct {
 	URL   string            `json:"url"`
 	Data  map[string]string `json:"data"`
+	Links []string          `json:"links,omitempty"`
 	Error string            `json:"error,omitempty"`
 }
 
 func ScrapeHandler(w http.ResponseWriter, r *http.Request) {
-
-	// Log the request method and headers
-	log.Printf("Received request: %s %s\n", r.Method, r.URL.Path)
-	for name, values := range r.Header {
-		log.Printf("Header: %s = %s\n", name, values)
-	}
-
-	// Check for correct HTTP method
 	if r.Method != http.MethodPost {
 		http.Error(w, "Only POST supported", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// Decode the JSON body into ScrapeRequest
 	var req ScrapeRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid JSON request", http.StatusBadRequest)
-		log.Printf("Error decoding JSON: %v\n", err)
 		return
 	}
 
-	log.Printf("Decoded request: %+v\n", req)
-
-	// Prepare results variable
 	var results []ScrapeResponse
-
-	// Choose the scraping method based on the type
 	switch req.Type {
 	case "shallow":
 		results = scrapeShallow(req)
@@ -66,25 +53,14 @@ func ScrapeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Scraping finished, results: %+v\n", results)
-
-	// Save the results to a JSON file
 	saveToJSON(results)
 
-	// Set the correct Content-Type header and return the results as JSON
-	// w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	err := json.NewEncoder(w).Encode(results)
-	if err != nil {
-		log.Printf("Error encoding response: %v\n", err)
-	}
+	_ = json.NewEncoder(w).Encode(results)
 }
 
-// Save the result to a JSON file
 func saveToJSON(results []ScrapeResponse) {
-	timestamp := time.Now().Format("2006-01-02_15-04-05")
-	filename := fmt.Sprintf("scraped_data_%s.json", timestamp)
-
+	filename := fmt.Sprintf("scraped_data_%s.json", time.Now().Format("2006-01-02_15-04-05"))
 	file, err := os.Create(filename)
 	if err != nil {
 		log.Println("Error creating JSON file:", err)
@@ -93,78 +69,109 @@ func saveToJSON(results []ScrapeResponse) {
 	defer file.Close()
 
 	encoder := json.NewEncoder(file)
-	encoder.SetIndent("", "  ") // Pretty JSON format
-	if err := encoder.Encode(results); err != nil {
-		log.Println("Error writing JSON file:", err)
-	}
-
-	fmt.Println("Scraped data saved to", filename)
+	encoder.SetIndent("", "  ")
+	_ = encoder.Encode(results)
 }
 
 func scrapeShallow(req ScrapeRequest) []ScrapeResponse {
-	fmt.Println("shallow triggered with request:", req)
-
 	c := colly.NewCollector()
 	var results []ScrapeResponse
 	var mu sync.Mutex
 	var wg sync.WaitGroup
 
+	visited := make(map[string]bool)
+	seenData := make(map[string]bool)
+
 	for _, url := range req.Links {
 		wg.Add(1)
 		go func(url string) {
 			defer wg.Done()
-			log.Println("Visiting:", url)
 
-			var data map[string]string
-			var foundWrapper bool // Track if wrapper is found
+			var extractedLinks []string
+			var dataList []map[string]string
 
-			c.OnHTML("*", func(e *colly.HTMLElement) {
-				log.Println("Page loaded:", e.Request.URL.String())
-			})
-
-			// Check if Wrapper is specified and then match it
-			if req.Wrapper != "" {
-
-				c.OnHTML(req.Wrapper, func(e *colly.HTMLElement) {
-					foundWrapper = true
-					log.Println("Wrapper matched:", req.Wrapper)
-
-					data = make(map[string]string)
+			c.OnHTML(req.Wrapper, func(e *colly.HTMLElement) {
+				e.ForEach("*", func(i int, item *colly.HTMLElement) {
+					data := make(map[string]string)
 					for key, selector := range req.Elements {
-						text := e.ChildText(selector)
-						if text == "" {
-							log.Printf("Warning: No text found for key '%s' using selector '%s'\n", key, selector)
-						}
-						data[key] = text
-					}
-					log.Printf("Extracted data from %s: %+v\n", url, data)
-				})
-			} else {
-				log.Printf("No wrapper specified for %s\n", url)
-			}
+						var extractedData string
 
-			// Wrapper Not Found
-			c.OnScraped(func(r *colly.Response) {
-				if !foundWrapper && req.Wrapper != "" {
-					log.Printf("Error: Wrapper '%s' not found on page %s\n", req.Wrapper, url)
-				}
+						if isXPath(selector) {
+							// Debugging: Print the raw HTML
+							log.Println("HTML content:", e.Text)
+
+							// Parse the HTML with htmlquery
+							docParsed, err := htmlquery.Parse(strings.NewReader(e.Text))
+							if err != nil {
+								log.Println("Error parsing HTML:", err)
+								continue
+							}
+
+							// Find elements using XPath
+							nodes := htmlquery.Find(docParsed, selector)
+							if len(nodes) > 0 {
+								extractedData = strings.TrimSpace(htmlquery.InnerText(nodes[0]))
+								log.Printf("XPath result for %s: %s", selector, extractedData) // Debugging line
+							} else {
+								log.Printf("No results for XPath selector: %s", selector) // Debugging line
+							}
+						} else {
+							extractedData = item.ChildText(selector)
+						}
+
+						if extractedData != "" {
+							data[key] = extractedData
+						} else {
+							data[key] = "No data"
+						}
+					}
+
+					item.DOM.Find("a").Each(func(i int, s *goquery.Selection) {
+						href, _ := s.Attr("href")
+						if href != "" {
+							data["URL"] = href
+							extractedLinks = append(extractedLinks, href)
+						}
+					})
+
+					dataList = append(dataList, data)
+				})
 			})
 
-			// Visiting Error
-			err := c.Visit(url)
-			if err != nil {
-				log.Printf("Error visiting URL %s: %v\n", url, err)
-			}
+			// Scrape only if the URL hasn't been visited yet
+			if !visited[url] {
+				visited[url] = true
+				err := c.Visit(url)
+				if err != nil {
+					mu.Lock()
+					results = append(results, ScrapeResponse{URL: url, Error: err.Error()})
+					mu.Unlock()
+				} else {
+					mu.Lock()
+					for _, data := range dataList {
+						hasNonEmptyField := false
+						uniqueKey := ""
 
-			// Prepare response
-			res := ScrapeResponse{URL: url, Data: data}
-			if err != nil {
-				res.Error = err.Error()
-			}
+						for key, value := range data {
+							if value != "" {
+								hasNonEmptyField = true
+							}
+							if key == "description" || key == "price" || key == "title" {
+								uniqueKey += value
+							}
+						}
 
-			mu.Lock()
-			results = append(results, res)
-			mu.Unlock()
+						if hasNonEmptyField && !seenData[uniqueKey] {
+							seenData[uniqueKey] = true
+							results = append(results, ScrapeResponse{
+								URL:  url,
+								Data: data,
+							})
+						}
+					}
+					mu.Unlock()
+				}
+			}
 		}(url)
 	}
 
@@ -172,7 +179,6 @@ func scrapeShallow(req ScrapeRequest) []ScrapeResponse {
 	return results
 }
 
-// Detailed Scraping: Using colly and htmlquery for more complex scraping
 func scrapeDetailed(req ScrapeRequest) []ScrapeResponse {
 	fmt.Print("detailed triggered")
 	c := colly.NewCollector()
@@ -192,23 +198,43 @@ func scrapeDetailed(req ScrapeRequest) []ScrapeResponse {
 			return
 		}
 
-		// Parse the HTML content using htmlquery
-		doc, err := htmlquery.Parse(strings.NewReader(htmlContent))
-		if err != nil {
-			log.Println("Error parsing HTML:", err)
-			return
-		}
+		// Parse the HTML content using goquery (for CSS selectors)
+		doc := e.DOM
 
-		// Extract data based on selectors
 		for key, selector := range req.Elements {
-			nodes := htmlquery.Find(doc, selector)
-			log.Printf("Found %d nodes for selector %s\n", len(nodes), selector)
-			if len(nodes) > 0 {
-				data[key] = strings.TrimSpace(htmlquery.InnerText(nodes[0]))
+			var extractedData string
+
+			if isXPath(selector) {
+				// If the selector looks like an XPath, use htmlquery
+				docParsed, err := htmlquery.Parse(strings.NewReader(htmlContent))
+				if err != nil {
+					log.Println("Error parsing HTML:", err)
+					continue
+				}
+
+				// Use htmlquery to find the nodes based on the XPath
+				nodes := htmlquery.Find(docParsed, selector)
+				if len(nodes) > 0 {
+					// Extract the inner text of the first matching node
+					extractedData = strings.TrimSpace(htmlquery.InnerText(nodes[0]))
+				}
+			} else {
+				// Otherwise, treat it as a CSS selector and use goquery
+				elements := doc.Find(selector)
+				if elements.Length() > 0 {
+					// Extract text from the first element matching the CSS selector
+					extractedData = strings.TrimSpace(elements.First().Text())
+				}
+			}
+
+			// Store the extracted data if any was found
+			if extractedData != "" {
+				data[key] = extractedData
 			}
 		}
 
 		log.Printf("Extracted detailed data: %+v\n", data)
+		// Append the extracted data to the results
 		results = append(results, ScrapeResponse{URL: e.Request.URL.String(), Data: data})
 	})
 
@@ -218,5 +244,13 @@ func scrapeDetailed(req ScrapeRequest) []ScrapeResponse {
 		_ = c.Visit(link)
 	}
 
+	// Return the results after visiting all the links
 	return results
+}
+
+// Helper function to check if the selector is an XPath
+func isXPath(selector string) bool {
+	// Check if the selector starts with '/' or contains '//' indicating an XPath
+	selector = strings.TrimSpace(selector)
+	return strings.HasPrefix(selector, "/") || strings.Contains(selector, "//")
 }

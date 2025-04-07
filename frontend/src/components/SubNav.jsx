@@ -14,7 +14,7 @@ const SubNav = ({ currentTab, setCurrentTab }) => {
       mode="inline"
       onClick={handleMenuClick}
       selectedKeys={[currentTab]}
-      style={{ height: '100%', borderRight: 0 }}
+      style={{ height: '100%', borderRight: 0 , color:'#4c4b52'}}
     >
        <Menu.SubMenu key="sub2" icon={<LaptopOutlined />} title="Administration">
           <Menu.Item key="websites">
@@ -28,17 +28,23 @@ const SubNav = ({ currentTab, setCurrentTab }) => {
       <Menu.Item key="scraping-tasks">
           <Link to="/scraping-tasks">Tasks</Link>
         </Menu.Item>
-        <Menu.Item key="output">Outputs</Menu.Item>
+        <Menu.Item key="output"><Link to="/get-results">Outputs</Link></Menu.Item>
       </Menu.SubMenu>
       <Menu.SubMenu key="sub4" icon={<BarChartOutlined />} title="Statistics">
-        <Menu.Item key="email-alerts">Charts</Menu.Item>
+        <Menu.Item key="charts">
+        <Link to="/charts">Charts</Link>
+        </Menu.Item>
       </Menu.SubMenu>
       <Menu.SubMenu key="sub5" icon={<NotificationOutlined />} title="Notifications">
-        <Menu.Item key="push-notifications">Push Notifications</Menu.Item>
+        <Menu.Item key="notifications">
+        <Link to="/notifications"> Push Notifications</Link>
+       </Menu.Item>
       </Menu.SubMenu>
       <Menu.SubMenu key="sub1" icon={<UserOutlined />} title="User Menu">
-        <Menu.Item key="profile">Profile</Menu.Item>
-        <Menu.Item key="settings">Settings</Menu.Item>
+        <Menu.Item key="profile">
+        <Link to="/profile"> Push Notifications</Link>
+        </Menu.Item>
+        <Menu.Item key="settings"><Link to="/settings"> Settings</Link></Menu.Item>
       </Menu.SubMenu>
     </Menu>
   );

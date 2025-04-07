@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Table, Spin, Alert, Tag, Button, Popconfirm } from 'antd';
+import { Table, Spin, Alert, Tag, Button, Popconfirm,Typography } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
-import BaseLayout from './BaseLayout';
+import { DeleteOutlined } from '@ant-design/icons';
 
 const TemplateList = ({ onLogout }) => {
   const [templates, setTemplates] = useState([]);
@@ -70,11 +70,6 @@ const TemplateList = ({ onLogout }) => {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-    //   render: (isActive) => (
-    //     <span style={{ color: isActive ? 'green' : 'red' }}>
-    //       {isActive ? 'Active' : 'Inactive'}
-    //     </span>
-    //   ),
     },
     {
       title: 'category',
@@ -86,14 +81,13 @@ const TemplateList = ({ onLogout }) => {
       key: 'actions',
       render: (_, record) => (
         <>
-          {/* <Button type="link" onClick={() => navigate(`/scraping-task/${record.task_id}`)}>Edit</Button> */}
           <Popconfirm
             title="Are you sure to delete this task?"
             onConfirm={() => handleDelete(record.task_id)}
             okText="Yes"
             cancelText="No"
           >
-            <Button type="link" danger>Delete</Button>
+          <Button type="text" danger icon={<DeleteOutlined />} />
           </Popconfirm>
         </>
       ),
@@ -101,16 +95,8 @@ const TemplateList = ({ onLogout }) => {
   ];
 
   return (
-    <BaseLayout
-      onLogout={onLogout}
-      breadcrumbs={[
-        { title: 'Home' },
-        { title: 'Dashboard' },
-        { title: 'Templates' },
-      ]}
-    >
       <div>
-        <h2>Scraper Tasks List</h2>
+        <Typography.Title level={2} style={{ marginBottom: 48 }}>Scraper Tasks List</Typography.Title>
         <Table
           columns={columns}
           dataSource={templates}
@@ -119,7 +105,6 @@ const TemplateList = ({ onLogout }) => {
           scroll={{ x: 'max-content' }}
         />
       </div>
-    </BaseLayout>
   );
 };
 

@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Table, Spin, Alert, Button, Popconfirm } from 'antd';
+import { Table, Spin, Alert, Button, Popconfirm,Typography } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';  
-import BaseLayout from './BaseLayout';
+import { DeleteOutlined } from '@ant-design/icons';
 
-const TemplateList = ({ onLogout }) => {
+const TemplateList = () => {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -93,20 +93,13 @@ const TemplateList = ({ onLogout }) => {
       key: 'actions',
       render: (_, record) => (
         <span>
-          <Button
-            type="primary"
-            onClick={() => handleEdit(record.id)}
-            style={{ marginRight: 8 }}
-          >
-            Edit
-          </Button>
           <Popconfirm
             title="Are you sure you want to delete this template?"
             onConfirm={() => handleDelete(record.id)}
             okText="Yes"
             cancelText="No"
           >
-            <Button type="danger">Delete</Button>
+            <Button type="text" danger icon={<DeleteOutlined />} />
           </Popconfirm>
         </span>
       ),
@@ -114,16 +107,8 @@ const TemplateList = ({ onLogout }) => {
   ];
 
   return (
-    <BaseLayout
-      onLogout={onLogout}
-      breadcrumbs={[
-        { title: 'Home' },
-        { title: 'Dashboard' },
-        { title: 'Templates' },
-      ]}
-    >
       <div>
-        <h2>Template List</h2>
+        <Typography.Title level={2} style={{ marginBottom: 48 }}>Template List</Typography.Title>
         <Table
           columns={columns}
           dataSource={templates}
@@ -132,7 +117,6 @@ const TemplateList = ({ onLogout }) => {
           scroll={{ x: 'max-content' }}
         />
       </div>
-    </BaseLayout>
   );
 };
 
