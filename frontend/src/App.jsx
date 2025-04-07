@@ -15,6 +15,9 @@ import RecentTasks from './components/RecentTasks';
 import BaseLayout from './components/BaseLayout';
 import RecentTaskDetails from './components/RecentTaskDetails'
 import Charts from './components/Charts'
+import PushNotificationsPage from './components/PushNotificationsPage'
+import SettingsPage from './components/SettingsPage'
+import ProfilePage from './components/ProfilePage';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!getToken());
@@ -34,7 +37,10 @@ const App = () => {
       <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />
 
       {/* Public Routes */}
-      <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <LoginForm />} />
+      <Route path="/login" element={isAuthenticated ? (<Navigate to="/dashboard" />) : (<LoginForm onLogin={() => setIsAuthenticated(true)} />
+    )
+  }
+/>
       <Route path="/signup" element={isAuthenticated ? <Navigate to="/dashboard" /> : <SignupForm />} />
 
       {/* Protected Routes inside BaseLayout */}
@@ -51,6 +57,9 @@ const App = () => {
           <Route path="/get-results" element={<RecentTasks />} />
           <Route path="/get-results/:task_id" element={<RecentTaskDetails />} />
           <Route path="/charts" element={<Charts />} />
+          <Route path='/notifications' element={<PushNotificationsPage/>}/>
+          <Route path='/settings' element={<SettingsPage/>}/>
+          <Route path='/profile' element={<ProfilePage/>}/>
         </Route>
       ) : (
         <Route path="*" element={<Navigate to="/login" />} />

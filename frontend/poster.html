@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+  <title>Scrape Trackname</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet"/>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #001529;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+
+    .caveat-font {
+      font-family: "Caveat", cursive;
+      font-weight: 700;
+      color: rgb(255, 199, 111);
+      font-size: 3.5rem;
+      margin: 0;
+    }
+
+    header {
+      text-align: center;
+      padding: 40px 20px 10px;
+    }
+
+    .subtitle {
+      color: #aaa;
+      font-size: 1.2rem;
+    }
+
+    section {
+      padding: 30px;
+      text-align: center;
+    }
+
+    .logo-container {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
+      margin: 30px 0;
+    }
+
+    .logo-container img {
+      height: 50px;
+      width: auto;
+      filter: brightness(0) invert(1);
+    }
+
+    .platform-info {
+      max-width: 800px;
+      margin: auto;
+    }
+
+    .platform-info h2 {
+      color: rgb(255, 199, 111);
+      margin-bottom: 10px;
+    }
+
+    .platform-info p {
+      color: #ccc;
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+
+    .screenshots-container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .screenshot {
+      width: 300px;
+      /* height: 200px; */
+      background-color: #33475b;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.4rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .screenshot img {
+      width: 100%;
+      /* height: 100%; */
+      /* object-fit: cover; */
+      border-radius: 8px;
+   }
+
+    footer {
+      background-color: #000c17;
+      color: #888;
+      text-align: center;
+      padding: 15px;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header / Logo -->
+  <header>
+    <h1 class="caveat-font">ScrapeTrack</h1>
+    <p class="subtitle">Your Web Scraping Companion</p>
+  </header>
+
+  <!-- Technologies Used -->
+  <section>
+    <div class="logo-container">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Go_Logo_Blue.svg/1024px-Go_Logo_Blue.svg.png" alt="Golang Logo" title="Golang">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/4/47/React.svg" alt="React Logo" title="React">
+      <img src="https://cdn-icons-png.flaticon.com/512/152/152759.png" alt="Chrome Extension Logo" title="Chrome Extension">
+      <img src="https://wiki.postgresql.org/images/thumb/6/61/PostgreSQL_Logo.1_Color_Black.png/116px-PostgreSQL_Logo.1_Color_Black.png" alt="PostgreSQL Logo" title="PostgreSQL">
+    </div>
+
+    <div class="platform-info">
+      <h2>Fast. Extensible. Visual.</h2>
+      <p>
+        ScrapeTrack is a modern platform designed to simplify web scraping.
+        Built using <strong>Golang</strong> for performance, <strong>React</strong> for sleek UIs,
+        and a <strong>Chrome Extension</strong> for real-time extraction – all connected to
+        a <strong>PostgreSQL</strong> database for reliable storage.
+      </p>
+    </div>
+
+    <!-- Screenshot placeholders -->
+    <div class="screenshots-container">
+      <div class="screenshot"><img src="screenshot1.png" alt="Screenshot 1"></div>
+      <div class="screenshot"><img src="screenshot2.png" alt="Screenshot 2"></div>
+      <div class="screenshot"><img src="screenshot4.png" alt="Screenshot 3"></div>
+    </div>
+  </section>
+
+  <footer>
+    &copy; 2025 ScrapeTrack. All rights reserved.
+  </footer>
+
+</body>
+</html>

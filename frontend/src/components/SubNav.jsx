@@ -36,11 +36,15 @@ const SubNav = ({ currentTab, setCurrentTab }) => {
         </Menu.Item>
       </Menu.SubMenu>
       <Menu.SubMenu key="sub5" icon={<NotificationOutlined />} title="Notifications">
-        <Menu.Item key="push-notifications">Push Notifications</Menu.Item>
+        <Menu.Item key="notifications">
+        <Link to="/notifications"> Push Notifications</Link>
+       </Menu.Item>
       </Menu.SubMenu>
       <Menu.SubMenu key="sub1" icon={<UserOutlined />} title="User Menu">
-        <Menu.Item key="profile">Profile</Menu.Item>
-        <Menu.Item key="settings">Settings</Menu.Item>
+        <Menu.Item key="profile">
+        <Link to="/profile"> Push Notifications</Link>
+        </Menu.Item>
+        <Menu.Item key="settings"><Link to="/settings"> Settings</Link></Menu.Item>
       </Menu.SubMenu>
     </Menu>
   );

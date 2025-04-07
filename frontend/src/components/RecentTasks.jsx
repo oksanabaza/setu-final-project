@@ -105,6 +105,7 @@ const RecentTasks = () => {
     <>
     {/* // <div style={{ maxWidth: 1000, margin: "20px auto", padding: "20px" }}> */}
       {/* <Title level={3} style={{ textAlign: "center", marginBottom: "20px" }}>Recent Tasks</Title> */}
+      <Typography.Title level={2} style={{ marginBottom: 48 }}>Recent Tasks</Typography.Title>
       <Table 
         columns={columns} 
         dataSource={tasks.map((task, index) => ({ ...task, key: index }))} 

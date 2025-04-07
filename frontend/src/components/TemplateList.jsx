@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Table, Spin, Alert, Button, Popconfirm } from 'antd';
+import { Table, Spin, Alert, Button, Popconfirm,Typography } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';  
 import { DeleteOutlined } from '@ant-design/icons';
 
@@ -108,7 +108,7 @@ const TemplateList = () => {
 
   return (
       <div>
-        <h2>Template List</h2>
+        <Typography.Title level={2} style={{ marginBottom: 48 }}>Template List</Typography.Title>
         <Table
           columns={columns}
           dataSource={templates}

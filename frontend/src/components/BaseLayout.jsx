@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { Layout, Space, Button, Tooltip, Drawer, Typography, Badge, Breadcrumb, Card, ConfigProvider } from 'antd';
+import React, { useState } from 'react';
+import { Layout, Space, Button, Tooltip, Drawer, Typography, Badge, Breadcrumb, Card, ConfigProvider, Collapse, Row, Col } from 'antd';
 import { UserOutlined, LogoutOutlined, SunOutlined, MoonOutlined } from '@ant-design/icons';
 import SubNav from './SubNav';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { theme } from 'antd';
+import PageInfoCard from './PageInfoCard'
 
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
+const { Panel } = Collapse;
 
 const BaseLayout = ({ onLogout }) => {
   const [open, setOpen] = useState(false);
@@ -37,28 +39,66 @@ const BaseLayout = ({ onLogout }) => {
     '/get-results': 'Recent Tasks',
     '/get-results/:task_id': 'Recent Task Details',
     '/charts': 'Charts',
+    '/notifications': 'Notifications',
+    'profile':"Profile",
+    'settings':"Settings",
   };
 
-  // Function to generate breadcrumbs dynamically
   const getBreadcrumbs = () => {
-    const pathnames = location.pathname.split('/').filter(x => x);
-    const breadcrumbs = pathnames.map((_, index) => {
-      const currentPath = '/' + pathnames.slice(0, index + 1).join('/');
-
-      let breadcrumbName = breadcrumbNameMap[currentPath] || currentPath;
-      Object.keys(breadcrumbNameMap).forEach(route => {
-        const regex = new RegExp(route.replace(/:\w+/g, '([\\w-]+)'));
-        const match = currentPath.match(regex);
-        if (match) {
-          breadcrumbName = breadcrumbNameMap[route].replace(/:\w+/g, match[1]);
-        }
-      });
-
-      return { title: breadcrumbName, path: currentPath };
-    });
-
-    return [{ title: 'Home', path: '/' }, ...breadcrumbs];
+    const pathSnippets = location.pathname.split('/').filter(i => i);
+    const breadcrumbs = [];
+    let fullPath = '';
+  
+    // Add Home breadcrumb explicitly
+    breadcrumbs.push({ title: 'Home', path: '/dashboard' });
+  
+    for (let i = 0; i < pathSnippets.length; i++) {
+      fullPath += `/${pathSnippets[i]}`;
+  
+      let name = null;
+  
+      // Match static routes
+      if (breadcrumbNameMap[fullPath]) {
+        name = breadcrumbNameMap[fullPath];
+      } else {
+        // Match dynamic routes like /scraping-task/:id or /get-results/:task_id
+        Object.keys(breadcrumbNameMap).forEach((route) => {
+          const routeRegex = new RegExp('^' + route.replace(/:\w+/g, '([\\w-]+)') + '$');
+          if (routeRegex.test(fullPath)) {
+            name = breadcrumbNameMap[route];
+  
+            if (route === '/scraping-task/:id') {
+              const matches = fullPath.match(routeRegex);
+              if (matches && matches[1]) {
+                name = `Scraping Task Detail (${matches[1]})`; 
+              }
+            }
+            
+            if (route === '/get-results/:task_id') {
+              const matches = fullPath.match(routeRegex);
+              if (matches && matches[1]) {
+                name = `Recent Task Details (${matches[1]})`; 
+              }
+            }
+          }
+        });
+      }
+  
+      if (name) {
+        breadcrumbs.push({
+          path: fullPath,
+          title: name,
+        });
+      }
+    }
+  
+    if (pathSnippets[0] === 'scraping-task' && !breadcrumbs.some(b => b.title === 'Scraping Tasks')) {
+      breadcrumbs.splice(1, 0, { title: 'Scraping Tasks', path: '/scraping-tasks' });
+    }
+  
+    return breadcrumbs;
   };
+  
 
   const handleClick = () => {
     setIsDarkMode((previousValue) => !previousValue);
@@ -87,12 +127,12 @@ const BaseLayout = ({ onLogout }) => {
           <Space style={{ marginLeft: 'auto' }}>
             {/* Theme Toggle Button */}
             <div onClick={handleClick} style={{ cursor: "pointer" }}>
-          {isDarkMode ? (
-            <SunOutlined style={{ fontSize: "24px", color: "#ffc76f" }} />
-          ) : (
-            <MoonOutlined style={{ fontSize: "24px", color: "#ffc76f" }} />
-          )}
-        </div>
+              {isDarkMode ? (
+                <SunOutlined style={{ fontSize: "24px", color: "#ffc76f" }} />
+              ) : (
+                <MoonOutlined style={{ fontSize: "24px", color: "#ffc76f" }} />
+              )}
+            </div>
 
             <Tooltip title="User Information">
               <Badge count={5} style={{ backgroundColor: '#ffc76f', color: '#001529', borderColor: '#001529' }}>
@@ -124,7 +164,10 @@ const BaseLayout = ({ onLogout }) => {
                 </Breadcrumb.Item>
               ))}
             </Breadcrumb>
-            <Card style={{ marginTop: 30 }}>Content</Card>
+
+    
+            {/* <PageInfoCard/> */}
+
             <Content
               style={{
                 padding: 24,

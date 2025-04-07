@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Spin, Alert, Button, Modal, Form, Input, Switch, Card, Row, Col, notification } from 'antd';
-import BaseLayout from './BaseLayout';
+import { Spin, Alert, Button, Modal, Form, Input, Switch, Card, Row, Col, notification,Typography} from 'antd';
 
 const WebsiteList = ({ onLogout }) => {
   const [websites, setWebsites] = useState([]);
@@ -153,17 +152,9 @@ const WebsiteList = ({ onLogout }) => {
   if (error) return <Alert message="Error" description={error} type="error" />;
 
   return (
-    // <BaseLayout
-    //   onLogout={onLogout}
-    //   breadcrumbs={[
-    //     { title: 'Home' },
-    //     { title: 'Dashboard' },
-    //     { title: 'Websites' },
-    //   ]}
-    // >
     <>
       <div>
-        <h2>Website List</h2>
+        <Typography.Title level={2} style={{ margin: 0 }}>Website List</Typography.Title>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
           <Button
             type="primary"
@@ -174,7 +165,6 @@ const WebsiteList = ({ onLogout }) => {
           </Button>
         </div>
 
-        {/* Websites Display as Cards */}
         <Row gutter={16}>
           {websites.map((website) => (
             <Col span={8} key={website.id} style={{ marginBottom: 16 }}>
@@ -293,7 +283,6 @@ const WebsiteList = ({ onLogout }) => {
         </Form>
       </Modal>
       </>
-    // </BaseLayout>
   );
 };
 
