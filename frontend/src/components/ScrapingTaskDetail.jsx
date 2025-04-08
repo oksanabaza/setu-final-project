@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import {
-  Card, Spin, Alert, Input, Button, Upload, message, Form, Select, Row, Col, Descriptions, Typography, Divider, Space
-} from 'antd';
+import { ConfigProvider, message, Button, Spin, Alert, Form, Input, Upload, Row, Col, Descriptions, Typography, Divider, Space, Select, Card } from 'antd';
 import { UploadOutlined, EditOutlined } from '@ant-design/icons';
+import { App } from 'antd'; 
 
 const { Title } = Typography;
 
@@ -19,6 +18,8 @@ const ScrapingTaskDetails = ({ onLogout }) => {
   const [taskOutputs, setTaskOutputs] = useState([]);
   const [form] = Form.useForm();
   const token = localStorage.getItem('token');
+  const [isScraping, setIsScraping] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,6 +54,7 @@ const ScrapingTaskDetails = ({ onLogout }) => {
 
       } catch (err) {
         setError(err.message);
+        message.error(`Error: ${err.message}`);
       } finally {
         setLoading(false);
       }
@@ -60,19 +62,28 @@ const ScrapingTaskDetails = ({ onLogout }) => {
 
     fetchData();
   }, [id, token]);
+  const success = () => {
+    messageApi.open({
+      type: 'success',
+      content: 'Scraping completed successfully!',
+      
+    });
+  };
+  
   const handleStartScraping = async () => {
     try {
       if (!template) {
         throw new Error('Template data not loaded.');
       }
-  
-      message.success('Starting scraping task...');
+      success()
+    
+      setIsScraping(true);
   
       const payload = {
         elements: {
           description: template.settings.elements?.description || template.settings.description,
           price: template.settings.elements?.price || template.settings.price,
-          title: template.settings.elements?.title || template.settings.title
+          title: template.settings.elements?.title || template.settings.title,
         },
         links,
         type: template.scraping_type,
@@ -91,8 +102,6 @@ const ScrapingTaskDetails = ({ onLogout }) => {
       }
   
       const scrapedData = await response.json();
-      // console.log("Scraped Data: ", scrapedData); 
-  
       setTaskOutputs(prevOutputs => [...prevOutputs, scrapedData]);
   
       const saveDataResponse = await fetch('http://localhost:8080/post-results', {
@@ -111,13 +120,15 @@ const ScrapingTaskDetails = ({ onLogout }) => {
         throw new Error(`Failed to save extracted data: ${saveDataResponse.statusText}`);
       }
   
-      message.success('Scraping completed successfully!');
+      message.success('Scraping completed successfully!'); // Show success message
     } catch (err) {
-      // console.error(err); 
       message.error(`Error: ${err.message}`);
+    } finally {
+      setIsScraping(false);
     }
   };
   
+
   const handleFileUpload = (file) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -157,133 +168,145 @@ const ScrapingTaskDetails = ({ onLogout }) => {
   if (error) return <Alert message="Error" description={error} type="error" />;
 
   return (
-    <Card
-      title={<Title level={4}>{scrapingTask.name}</Title>}
-      extra={!editing && (
-        <Button icon={<EditOutlined />} onClick={() => setEditing(true)}>
-          Edit
-        </Button>
-      )}
-    >
-      {editing ? (
-        <Form
-          form={form}
-          layout="vertical"
-          initialValues={{
-            name: scrapingTask.name,
-            category: scrapingTask.category,
-            priority: scrapingTask.priority,
-            schedule_cron: scrapingTask.schedule_cron,
-            last_error: scrapingTask.last_error,
-            template_id: scrapingTask.template_id,
-          }}
-        >
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="Task Name" name="name">
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Category" name="category">
-                <Input />
-              </Form.Item>
-            </Col>
-          </Row>
+    <App>
+      {contextHolder}
+      <Card
+        title={<Title level={4}>{scrapingTask.name}</Title>}
+        extra={!editing && (
+          <Button icon={<EditOutlined />} onClick={() => setEditing(true)}>
+            Edit
+          </Button>
+        )}
+      >
+        {editing ? (
+          <Form
+            form={form}
+            layout="vertical"
+            initialValues={{
+              name: scrapingTask.name,
+              category: scrapingTask.category,
+              priority: scrapingTask.priority,
+              schedule_cron: scrapingTask.schedule_cron,
+              last_error: scrapingTask.last_error,
+              template_id: scrapingTask.template_id,
+            }}
+          >
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item label="Task Name" name="name">
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item label="Category" name="category">
+                  <Input />
+                </Form.Item>
+              </Col>
+            </Row>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="Priority" name="priority">
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Schedule Cron" name="schedule_cron">
-                <Input />
-              </Form.Item>
-            </Col>
-          </Row>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item label="Priority" name="priority">
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item label="Schedule Cron" name="schedule_cron">
+                  <Input />
+                </Form.Item>
+              </Col>
+            </Row>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="Last Error" name="last_error">
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Template" name="template_id">
-                <Select
-                  value={scrapingTask.template_id}
-                  onChange={(value) => {
-                    setTemplate(templates.find((t) => t.id === value));
-                  }}
-                >
-                  {templates.map((t) => (
-                    <Select.Option key={t.id} value={t.id}>
-                      {t.name}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item label="Last Error" name="last_error">
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item label="Template" name="template_id">
+                  <Select
+                    value={scrapingTask.template_id}
+                    onChange={(value) => {
+                      setTemplate(templates.find((t) => t.id === value));
+                    }}
+                  >
+                    {templates.map((t) => (
+                      <Select.Option key={t.id} value={t.id}>
+                        {t.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
 
-          <Form.Item label="Wrapper">
-            <Input value={template?.wrapper?.String || ''} disabled />
-          </Form.Item>
+            <Form.Item label="Wrapper">
+              <Input value={template?.wrapper?.String || ''} disabled />
+            </Form.Item>
 
-          <Divider orientation="left">Links</Divider>
+            <Divider orientation="left">Links</Divider>
 
-          <Space direction="vertical" style={{ width: '100%' }}>
-            <Upload
-              showUploadList={false}
-              beforeUpload={handleFileUpload}
-              accept=".txt"
-            >
-              <Button icon={<UploadOutlined />}>Upload .txt</Button>
-            </Upload>
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Upload
+                showUploadList={false}
+                beforeUpload={handleFileUpload}
+                accept=".txt"
+              >
+                <Button icon={<UploadOutlined />}>Upload .txt</Button>
+              </Upload>
 
-            <Input.TextArea
-              rows={6}
-              value={links.join('\n')}
-              onChange={(e) => setLinks(e.target.value.split('\n'))}
-              placeholder="Paste or edit links here..."
-            />
-          </Space>
+              <Input.TextArea
+                rows={6}
+                value={links.join('\n')}
+                onChange={(e) => setLinks(e.target.value.split('\n'))}
+                placeholder="Paste or edit links here..."
+              />
+            </Space>
 
-          <Row justify="end" gutter={12} style={{ marginTop: 24 }}>
-            <Col>
-              <Button onClick={() => setEditing(false)}>Cancel</Button>
-            </Col>
-            <Col>
-              <Button type="primary" onClick={handleSave}>Save</Button>
-            </Col>
-          </Row>
-        </Form>
-      ) : (
-        <>
-          <Descriptions column={1} bordered size="middle">
-            <Descriptions.Item label="Task ID">{scrapingTask.task_id}</Descriptions.Item>
-            <Descriptions.Item label="Status">{scrapingTask.status}</Descriptions.Item>
-            <Descriptions.Item label="Category">{scrapingTask.category}</Descriptions.Item>
-            <Descriptions.Item label="Priority">{scrapingTask.priority}</Descriptions.Item>
-            <Descriptions.Item label="Schedule Cron">{scrapingTask.schedule_cron}</Descriptions.Item>
-            <Descriptions.Item label="Last Error">{scrapingTask.last_error}</Descriptions.Item>
-            <Descriptions.Item label="Wrapper">{scrapingTask.wrapper?.String || '-'}</Descriptions.Item>
-          </Descriptions>
+            <Row justify="end" gutter={12} style={{ marginTop: 24 }}>
+              <Col>
+                <Button onClick={() => setEditing(false)}>Cancel</Button>
+              </Col>
+              <Col>
+                <Button type="primary" onClick={handleSave}>Save</Button>
+              </Col>
+            </Row>
+          </Form>
+        ) : (
+          <>
+            <Descriptions column={1} bordered size="middle">
+              <Descriptions.Item label="Task ID">{scrapingTask.task_id}</Descriptions.Item>
+              <Descriptions.Item label="Status">{scrapingTask.status}</Descriptions.Item>
+              <Descriptions.Item label="Category">{scrapingTask.category}</Descriptions.Item>
+              <Descriptions.Item label="Priority">{scrapingTask.priority}</Descriptions.Item>
+              <Descriptions.Item label="Schedule Cron">{scrapingTask.schedule_cron}</Descriptions.Item>
+              <Descriptions.Item label="Last Error">{scrapingTask.last_error}</Descriptions.Item>
+              <Descriptions.Item label="Wrapper">{scrapingTask.wrapper?.String || '-'}</Descriptions.Item>
+            </Descriptions>
 
-          <Divider orientation="left">Links</Divider>
-          <ul style={{ paddingLeft: '1.2em' }}>
-            {links.map((link, index) => (
-              <li key={index}>{link}</li>
-            ))}
-          </ul>
-        </>
-      )}
-             <Button onClick={handleStartScraping} type="primary" style={{ marginTop: 16 }}>
-        Start Scraping
-      </Button>
-    </Card>
+            <Divider orientation="left">Links</Divider>
+            <div>{links.join(', ')}</div>
+
+            {/* <Divider orientation="left">Task Outputs</Divider>
+            <div>{taskOutputs.map((output, idx) => (
+              <div key={idx}>
+                <p>Output {idx + 1}:</p>
+                <pre>{JSON.stringify(output, null, 2)}</pre>
+              </div>
+            ))}</div> */}
+
+            <Row gutter={12} justify="end" style={{ marginTop: 24 }}>
+              <Col>
+                <Button type="primary" onClick={handleStartScraping} disabled={isScraping}>
+                  {isScraping ? 'Scraping...' : 'Start Scraping'}
+                </Button>
+              </Col>
+            </Row>
+          </>
+        )}
+      </Card>
+    </App>
   );
 };
 
