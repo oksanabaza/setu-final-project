@@ -16,6 +16,7 @@ const ScrapingTaskDetails = ({ onLogout }) => {
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(false);
   const [links, setLinks] = useState([]);
+  const [taskOutputs, setTaskOutputs] = useState([]);
   const [form] = Form.useForm();
   const token = localStorage.getItem('token');
 
@@ -59,7 +60,64 @@ const ScrapingTaskDetails = ({ onLogout }) => {
 
     fetchData();
   }, [id, token]);
-
+  const handleStartScraping = async () => {
+    try {
+      if (!template) {
+        throw new Error('Template data not loaded.');
+      }
+  
+      message.success('Starting scraping task...');
+  
+      const payload = {
+        elements: {
+          description: template.settings.elements?.description || template.settings.description,
+          price: template.settings.elements?.price || template.settings.price,
+          title: template.settings.elements?.title || template.settings.title
+        },
+        links,
+        type: template.scraping_type,
+        is_xpath: template.is_xpath || true,
+        wrapper: template.wrapper.String,
+      };
+  
+      const response = await fetch('http://localhost:8080/scrape', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Failed to start scraping: ${response.statusText}`);
+      }
+  
+      const scrapedData = await response.json();
+      // console.log("Scraped Data: ", scrapedData); 
+  
+      setTaskOutputs(prevOutputs => [...prevOutputs, scrapedData]);
+  
+      const saveDataResponse = await fetch('http://localhost:8080/post-results', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          TaskID: scrapingTask.task_id,
+          Result: JSON.stringify(scrapedData),
+        }),
+      });
+  
+      if (!saveDataResponse.ok) {
+        throw new Error(`Failed to save extracted data: ${saveDataResponse.statusText}`);
+      }
+  
+      message.success('Scraping completed successfully!');
+    } catch (err) {
+      // console.error(err); 
+      message.error(`Error: ${err.message}`);
+    }
+  };
+  
   const handleFileUpload = (file) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -222,6 +280,9 @@ const ScrapingTaskDetails = ({ onLogout }) => {
           </ul>
         </>
       )}
+             <Button onClick={handleStartScraping} type="primary" style={{ marginTop: 16 }}>
+        Start Scraping
+      </Button>
     </Card>
   );
 };

@@ -70,6 +70,7 @@ func main() {
 	r.HandleFunc("/scraping-tasks", middleware.AuthMiddleware(handlers.GetAllScrapingTasksHandler)).Methods("GET")
 	r.HandleFunc("/templates/{id}", middleware.AuthMiddleware(handlers.GetTemplateByID)).Methods("GET")
 	r.HandleFunc("/get-results/{task_id}", middleware.AuthMiddleware(handlers.GetResultsHandler)).Methods("GET")
+	r.HandleFunc("/get-result/unique/{unique_id}", middleware.AuthMiddleware(handlers.GetSpecificResultHandler)).Methods("GET")
 	r.HandleFunc("/post-results", middleware.AuthMiddleware(handlers.PostResultsHandler)).Methods("POST")
 
 	// Add CORS middleware

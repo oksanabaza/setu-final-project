@@ -7,13 +7,18 @@ const { Title } = Typography;
 const { TabPane } = Tabs;
 
 const RecentTaskDetails = () => {
-  const { task_id } = useParams();
+  const { unique_id } = useParams(); 
+  const token = useMemo(() => localStorage.getItem("token"), []);
   const [taskDetails, setTaskDetails] = useState(null);
   const [loading, setLoading] = useState(true);
-  const token = useMemo(() => localStorage.getItem("token"), []);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(`http://localhost:8080/get-results/${task_id}`, {
+    if (!unique_id) return; 
+
+    setLoading(true); 
+
+    fetch(`http://localhost:8080/get-result/unique/${unique_id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -24,6 +29,7 @@ const RecentTaskDetails = () => {
       .then((data) => {
         if (data.Result) {
           try {
+            // Parse the Result stringified JSON
             data.Result = JSON.parse(data.Result);
           } catch (error) {
             console.error("Failed to parse Result JSON", error);
@@ -31,9 +37,12 @@ const RecentTaskDetails = () => {
         }
         setTaskDetails(data);
       })
-      .catch((error) => console.error("Error fetching task details:", error))
-      .finally(() => setLoading(false));
-  }, [task_id, token]);
+      .catch((error) => {
+        console.error("Error fetching task details:", error);
+        setError("Failed to fetch task details.");
+      })
+      .finally(() => setLoading(false)); 
+  }, [unique_id, token]);
 
   if (loading) {
     return (
@@ -41,6 +50,10 @@ const RecentTaskDetails = () => {
         <Spin size="large" />
       </div>
     );
+  }
+
+  if (error) {
+    return <div>{error}</div>;
   }
 
   if (!taskDetails) {
@@ -67,47 +80,45 @@ const RecentTaskDetails = () => {
   const dataSource = taskDetails.Result?.map((item, index) => ({
     key: index,
     index: index + 1,
-    url: item.data.URL,
+    url: item.url,
     price: item.data.price,
     title: item.data.title,
     description: item.data.description,
   }));
 
   return (
-    // <div style={{ maxWidth: "1200px", margin: "auto", padding: "20px" }}>
-      <Tabs defaultActiveKey="1" >
-        <TabPane tab="JSON Format" key="1">
-          <Card style={{ marginBottom: "20px", boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)" }}>
-            <Title level={3}>Results</Title>
-            <div
-              style={{
-                height: "400px",
-                overflowY: "auto",
-                padding: "10px",
-                border: "1px solid #ddd",
-                borderRadius: "8px",
-                background: "rgba(0,0,0,0.88)",
-              }}
-            >
-              <ReactJson
-                src={taskDetails}
-                theme="monokai"
-                collapsed={1}
-                displayDataTypes={false}
-                style={{ height: "100%", overflow: "auto" }}
-              />
-            </div>
-          </Card>
-        </TabPane>
+    <Tabs defaultActiveKey="1">
+      <TabPane tab="JSON Format" key="1">
+        <Card style={{ marginBottom: "20px", boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)" }}>
+          <Title level={3}>Results</Title>
+          <div
+            style={{
+              height: "400px",
+              overflowY: "auto",
+              padding: "10px",
+              border: "1px solid #ddd",
+              borderRadius: "8px",
+              background: "rgba(0,0,0,0.88)",
+            }}
+          >
+            <ReactJson
+              src={taskDetails}
+              theme="monokai"
+              collapsed={1}
+              displayDataTypes={false}
+              style={{ height: "100%", overflow: "auto" }}
+            />
+          </div>
+        </Card>
+      </TabPane>
 
-        <TabPane tab="Table Format" key="2">
-          <Card style={{ boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)" }}>
-            <Title level={3}>Results</Title>
-            <Table columns={columns} dataSource={dataSource} pagination={{ pageSize: 5 }} size="small" />
-          </Card>
-        </TabPane>
-      </Tabs>
-    // </div>
+      <TabPane tab="Table Format" key="2">
+        <Card style={{ boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)" }}>
+          <Title level={3}>Results</Title>
+          <Table columns={columns} dataSource={dataSource} pagination={{ pageSize: 5 }} size="small" />
+        </Card>
+      </TabPane>
+    </Tabs>
   );
 };
 
