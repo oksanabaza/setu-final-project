@@ -247,10 +247,22 @@ func UpdateScrapingTaskHandler(w http.ResponseWriter, r *http.Request) {
 		status = $5, priority = $6, last_error = $7, schedule_cron = $8, index_urls = $9, updated_at = $10
 		WHERE task_id = $11`
 
-	_, err = database.DB.Exec(sqlStatement, task.UserID, task.WebsiteID, task.Name, task.Category, task.Status,
-		task.Priority, task.LastError, task.ScheduleCron, task.IndexURLs, task.UpdatedAt, taskID)
+	_, err = database.DB.Exec(sqlStatement,
+		task.UserID,
+		task.WebsiteID,
+		task.Name,
+		task.Category,
+		task.Status,
+		task.Priority,
+		task.LastError,
+		task.ScheduleCron,
+		task.IndexURLs,
+		task.UpdatedAt,
+		taskID,
+	)
+
 	if err != nil {
-		log.Printf("Error updating task: %v", err)
+		log.Printf("Error updating scraping task: %v", err)
 		http.Error(w, "Error updating task", http.StatusInternalServerError)
 		return
 	}

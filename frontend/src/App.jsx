@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import LoginForm from './components/LoginForm';
 import SignupForm from './components/SignupForm';
 import ScraperDashboard from './components/ScraperDashboard';
@@ -18,6 +18,7 @@ import Charts from './components/Charts'
 import PushNotificationsPage from './components/PushNotificationsPage'
 import SettingsPage from './components/SettingsPage'
 import ProfilePage from './components/ProfilePage';
+import OutputList from './components/OutputList'
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!getToken());
@@ -55,11 +56,14 @@ const App = () => {
           <Route path="/scraping-task/:id" element={<ScrapingTaskDetail />} />
           <Route path="/templates/edit/:id" element={<EditTemplate />} />
           <Route path="/get-results" element={<RecentTasks />} />
-          <Route path="/get-results/:task_id" element={<RecentTaskDetails />} />
           <Route path="/charts" element={<Charts />} />
           <Route path='/notifications' element={<PushNotificationsPage/>}/>
           <Route path='/settings' element={<SettingsPage/>}/>
           <Route path='/profile' element={<ProfilePage/>}/>
+          <Route path="/get-results/:task_id" element={<OutputList />} />
+          <Route path="/get-results/:task_id" element={<OutputList />} />
+          <Route path="/get-result/unique/:unique_id" element={<RecentTaskDetails />} />
+          
         </Route>
       ) : (
         <Route path="*" element={<Navigate to="/login" />} />
