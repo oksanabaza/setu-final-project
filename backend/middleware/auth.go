@@ -14,11 +14,11 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-var JWTKey []byte
+var jwtKey []byte
 var DB *sql.DB
 
 func LoadEnv() {
-	JWTKey = []byte(os.Getenv("JWT_SECRET"))
+	jwtKey = []byte(os.Getenv("JWT_SECRET"))
 	DBUrl := os.Getenv("DB_URL")
 
 	if DBUrl == "" {
