@@ -11,10 +11,11 @@ var JWTKey []byte
 var DBUrl string
 
 func LoadEnv() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Failed to load .env file")
+	if os.Getenv("RENDER") == "" {
+		if err := godotenv.Load(); err != nil {
+			log.Fatal("Failed to load .env file")
+		}
 	}
-
 	JWTKey = []byte(os.Getenv("JWT_SECRET"))
 	DBUrl = os.Getenv("DB_URL")
 
