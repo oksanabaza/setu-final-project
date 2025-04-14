@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Spin, Alert, Button, Modal, Form, Input, Switch, Card, Row, Col, notification,Typography} from 'antd';
+import { fetchWithAuth } from '../utils/api'; 
 
 const WebsiteList = ({ onLogout }) => {
   const [websites, setWebsites] = useState([]);
@@ -12,32 +13,28 @@ const WebsiteList = ({ onLogout }) => {
 
   const token = useMemo(() => localStorage.getItem('token'), []);
 
-   const fetchWebsites = async () => {
-    try {
-      const response = await fetch('http://localhost:8080/websites', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch websites (Status: ${response.status})`);
-      }
+const fetchWebsites = async () => {
+  try {
+    const response = await fetchWithAuth('http://localhost:8080/websites', {
+      method: 'GET',
+    });
 
-      const data = await response.json();
-
-      const sortedWebsites = data.sort((a, b) => a.id - b.id);
-
-      setWebsites(sortedWebsites);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    if (!response || !response.ok) {
+      throw new Error(`Failed to fetch websites (Status: ${response?.status})`);
     }
-  };
 
+    const data = await response.json();
+
+    const sortedWebsites = data.sort((a, b) => a.id - b.id);
+
+    setWebsites(sortedWebsites);
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchWebsites();

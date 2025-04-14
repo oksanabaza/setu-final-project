@@ -40,7 +40,6 @@ func init() {
 		log.Fatal("DB is not reachable:", err)
 	}
 
-	log.Println("Connected to the database successfully")
 }
 
 // Middleware for auth

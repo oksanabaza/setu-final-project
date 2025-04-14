@@ -1,5 +1,29 @@
 const API_URL = 'http://localhost:8080'; 
 
+
+export const fetchWithAuth = async (url, options = {}) => {
+  const token = getToken();
+
+  const headers = {
+    ...(options.headers || {}),
+    Authorization: token ? `Bearer ${token}` : "",
+    "Content-Type": "application/json",
+  };
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  if (response.status === 401) {
+    removeToken();
+    window.location.href = "/login";
+    return null;
+  }
+
+  return response;
+};
+
 export const login = async (email, password) => {
     const response = await fetch('http://localhost:8080/login', {
       method: 'POST',

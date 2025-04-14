@@ -1,19 +1,23 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Table, Spin, Alert, Button, Popconfirm,Typography } from 'antd';
+import { Table, Spin, Alert, Button, Popconfirm, Typography, Input } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';  
-import { DeleteOutlined } from '@ant-design/icons';
+import { DeleteOutlined, SearchOutlined } from '@ant-design/icons';
+
+const { Search } = Input;
 
 const TemplateList = () => {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
   const token = useMemo(() => localStorage.getItem('token'), []);
   const navigate = useNavigate();  
 
   useEffect(() => {
     const fetchTemplates = async () => {
       try {
-        const response = await fetch('http://localhost:8080/templates', {
+        const response = await fetch(`http://localhost:8080/templates?name=${searchQuery}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -35,7 +39,7 @@ const TemplateList = () => {
     };
 
     fetchTemplates();
-  }, [token]);
+  }, [searchQuery, token]);
 
   const handleDelete = async (id) => {
     try {
@@ -107,16 +111,48 @@ const TemplateList = () => {
   ];
 
   return (
-      <div>
-        <Typography.Title level={2} style={{ marginBottom: 48 }}>Template List</Typography.Title>
-        <Table
-          columns={columns}
-          dataSource={templates}
-          rowKey={(record) => record.id}
-          pagination={{ pageSize: 10 }}
-          scroll={{ x: 'max-content' }}
+    <div style={{ position: 'relative' }}>
+      <Typography.Title level={2} style={{ marginBottom: 48 }}>Template List</Typography.Title>
+
+      {/* Search Icon in Top Right */}
+      <Button
+        type="text"
+        icon={<SearchOutlined />}
+        onClick={() => setIsSearchVisible(!isSearchVisible)}
+        style={{
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          marginTop: 16,
+          marginRight: 16,
+        }}
+      />
+
+      {/* Expanding Search Input */}
+      {isSearchVisible && (
+        <Search
+          placeholder="Search by template name"
+          onSearch={(value) => setSearchQuery(value)}
+          enterButton
+          style={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            marginTop: 16,
+            marginRight: 80, 
+            maxWidth: 400,
+          }}
         />
-      </div>
+      )}
+
+      <Table
+        columns={columns}
+        dataSource={templates}
+        rowKey={(record) => record.id}
+        pagination={{ pageSize: 10 }}
+        scroll={{ x: 'max-content' }}
+      />
+    </div>
   );
 };
 

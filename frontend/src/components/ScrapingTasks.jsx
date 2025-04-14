@@ -93,10 +93,16 @@ const TemplateList = ({ onLogout }) => {
       ),
     },
   ];
-
+  const handleCreateTask = () => {
+    navigate('/create-scraping-task');
+  };
   return (
       <div>
-        <Typography.Title level={2} style={{ marginBottom: 48 }}>Scraper Tasks List</Typography.Title>
+        
+        <Typography.Title level={2} style={{ marginBottom: 48 }}>Scraping Tasks</Typography.Title>
+        <Button type="primary" onClick={handleCreateTask}>
+        Create New Scraping Task
+      </Button>
         <Table
           columns={columns}
           dataSource={templates}

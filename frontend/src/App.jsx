@@ -19,6 +19,7 @@ import PushNotificationsPage from './components/PushNotificationsPage'
 import SettingsPage from './components/SettingsPage'
 import ProfilePage from './components/ProfilePage';
 import OutputList from './components/OutputList'
+import CreateScrapingTask from './components/CreateScrapingTask'
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!getToken());
@@ -53,6 +54,7 @@ const App = () => {
           <Route path="/templates/:id" element={<TemplateDetail />} />
           <Route path="/websites/create" element={<AddWebsiteForm />} />
           <Route path="/scraping-tasks" element={<ScrapingTasks />} />
+          <Route path="/create-scraping-task" element={<CreateScrapingTask />} />
           <Route path="/scraping-task/:id" element={<ScrapingTaskDetail />} />
           <Route path="/templates/edit/:id" element={<EditTemplate />} />
           <Route path="/get-results" element={<RecentTasks />} />
