@@ -13,9 +13,9 @@ RUN go mod download
 COPY . .
 
 # Build the Go app
-RUN go build -o app .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o app .
 
-# Stage 2: Run the Go binary
+# Stage 2: Run the Go binary in a smaller environment
 FROM debian:bullseye-slim
 
 # Create a non-root user
