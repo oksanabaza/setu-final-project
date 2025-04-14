@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/joho/godotenv"
 )
 
 type Claims struct {
@@ -15,31 +14,27 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-var jwtKey []byte
-var db *sql.DB
+var JWTKey []byte
+var DB *sql.DB
 
-func init() {
-	// loading .env file
-	if err := godotenv.Load(); err != nil {
-		log.Fatal(".env loading failed")
+func LoadEnv() {
+	JWTKey = []byte(os.Getenv("JWT_SECRET"))
+	DBUrl := os.Getenv("DB_URL")
+
+	if DBUrl == "" {
+		log.Fatal("DB_URL is not set in environment")
 	}
 
-	// reading vars from .env
-	jwtKey = []byte(os.Getenv("JWT_SECRET"))
-	dbURL := os.Getenv("DB_URL")
-
-	// connecting to db
 	var err error
-	db, err = sql.Open("postgres", dbURL)
+	DB, err = sql.Open("postgres", DBUrl)
 	if err != nil {
-		log.Fatal("db connection failed:", err)
+		log.Fatal("Error opening database connection: ", err)
 	}
 
-	// Check if the connection is working
-	if err := db.Ping(); err != nil {
-		log.Fatal("DB is not reachable:", err)
+	err = DB.Ping()
+	if err != nil {
+		log.Fatal("Error pinging database: ", err)
 	}
-
 }
 
 // Middleware for auth
