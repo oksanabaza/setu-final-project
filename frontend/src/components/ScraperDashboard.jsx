@@ -1,74 +1,90 @@
-import React from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import BaseLayout from './BaseLayout';
-import { ResponsiveCalendar, ResponsiveTimeRange } from '@nivo/calendar';
-import { Table, Tag, Typography } from 'antd';
+import { ResponsiveTimeRange } from '@nivo/calendar';
+import { DatePicker, Table, Tag, Typography, Spin, Space, Button } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
+import moment from 'moment';
 
 const Dashboard = ({ onLogout }) => {
-  const calendarData = [
-    {
-      "value": 188,
-      "day": "2025-05-16"
-    },
-    {
-      "value": 148,
-      "day": "2025-04-23"
-    },
-    {
-      "value": 123,
-      "day": "2025-09-13"
-    },
-    {
-      "value": 384,
-      "day": "2025-11-29"
-    },
-    {
-      "value": 30,
-      "day": "2025-03-20"
-    },
-    {
-      "value": 2,
-      "day": "2025-08-09"
-    },
-  ];
-
-  const tasksData = [
-    {
-      key: '1',
-      task: 'Scrape Website A',
-      date: '2025-05-16',
-      status: 'In Progress',
-    },
-    {
-      key: '2',
-      task: 'Scrape Website B',
-      date: '2025-04-23',
-      status: 'Completed',
-    },
-    {
-      key: '3',
-      task: 'Scrape Website C',
-      date: '2025-09-13',
-      status: 'Pending',
-    },
-    {
-      key: '4',
-      task: 'Scrape Website D',
-      date: '2025-11-29',
-      status: 'Failed',
-    },
-    {
-      key: '5',
-      task: 'Scrape Website E',
-      date: '2025-03-20',
-      status: 'In Progress',
-    },
-  ];
+  const [calendarData, setCalendarData] = useState([]);
+  const [tasksData, setTasksData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchText, setSearchText] = useState('');
+  const [searchedColumn, setSearchedColumn] = useState('');
+  const token = useMemo(() => localStorage.getItem('token'), []);
 
   const taskStatus = {
     'In Progress': 'processing',
     'Completed': 'success',
     'Pending': 'default',
     'Failed': 'error',
+  };
+
+  const getColumnSearchProps = (dataIndex) => ({
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters,
+    }) => (
+      <div style={{ padding: 8 }}>
+        <Space direction="vertical" style={{ width: 200 }}>
+          <DatePicker
+            value={selectedKeys[0] ? moment(selectedKeys[0]) : null}
+            onChange={(date) => {
+              setSelectedKeys(date ? [date.format('YYYY-MM-DD')] : []);
+            }}
+            allowClear
+            style={{ width: '100%' }}
+          />
+          <Space>
+            <Button
+              type="primary"
+              onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
+              icon={<SearchOutlined />}
+              size="small"
+              style={{ width: 90 }}
+            >
+              Search
+            </Button>
+            <Button
+              onClick={() => handleReset(clearFilters)}
+              size="small"
+              style={{ width: 90 }}
+            >
+              Reset
+            </Button>
+            <Button
+              type="link"
+              size="small"
+              onClick={() => {
+                confirm({ closeDropdown: false });
+              }}
+            >
+             
+            </Button>
+          </Space>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered) => (
+      <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
+    ),
+    onFilter: (value, record) => {
+      return moment(record[dataIndex]).format('YYYY-MM-DD') === value;
+    },
+  });
+
+  const handleSearch = (selectedKeys, confirm, dataIndex) => {
+    confirm();
+    setSearchText(selectedKeys[0]);
+    setSearchedColumn(dataIndex);
+  };
+
+  const handleReset = (clearFilters) => {
+    clearFilters();
+    setSearchText('');
+    setSearchedColumn('');
   };
 
   const columns = [
@@ -81,18 +97,71 @@ const Dashboard = ({ onLogout }) => {
       title: 'Date',
       dataIndex: 'date',
       key: 'date',
+      ...getColumnSearchProps('date'),
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: status => (
-        <Tag color={taskStatus[status]}>
-          {status}
-        </Tag>
-      ),
+      filters: [
+        { text: 'Completed', value: 'Completed' },
+        { text: 'In Progress', value: 'In Progress' },
+        { text: 'Pending', value: 'Pending' },
+        { text: 'Failed', value: 'Failed' },
+      ],
+      onFilter: (value, record) => record.status === value,
+      render: (status) => <Tag color={taskStatus[status]}>{status}</Tag>,
     },
   ];
+
+  useEffect(() => {
+    const fetchResults = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/get-results', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch results (Status: ${response.status})`);
+        }
+
+        const data = await response.json();
+        const results = data.Results;
+
+        if (!Array.isArray(results)) {
+          throw new Error('Unexpected API response format: expected an array');
+        }
+
+        const counts = {};
+        const tasksTableData = [];
+
+        results.forEach((result) => {
+          const date = result.created_at.split('T')[0];
+          counts[date] = (counts[date] || 0) + 1;
+
+          tasksTableData.push({
+            key: result.id,
+            task: `Scrape Task #${result.TaskID}`,
+            date,
+            status: 'Completed',
+          });
+        });
+
+        setCalendarData(Object.entries(counts).map(([day, value]) => ({ day, value })));
+        setTasksData(tasksTableData);
+      } catch (err) {
+        console.error('Error fetching results:', err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResults();
+  }, [token]);
 
   const MyResponsiveCalendarComponent = ({ data }) => (
     <ResponsiveTimeRange
@@ -122,21 +191,30 @@ const Dashboard = ({ onLogout }) => {
   );
 
   return (
-    <div style={{ height: '100vh' }}>
-      <Typography.Title level={2} style={{ margin: 0 }}>Latest Scraping</Typography.Title>
-      <div style={{ height: '200px' }}>
-        <MyResponsiveCalendarComponent data={calendarData} />
-      </div>
+    <div style={{ height: '100vh', padding: '20px' }}>
+      <Typography.Title level={2} style={{ margin: 0 }}>
+        Latest Scraping
+      </Typography.Title>
 
-      {/* Mock Table for Recent Tasks */}
-      <div style={{ marginTop: '30px', padding: '0 20px' }}>
-        <Table
-          columns={columns}
-          dataSource={tasksData}
-          pagination={false}
-          bordered
-        />
-      </div>
+      {loading ? (
+        <Spin size="large" style={{ marginTop: '50px' }} />
+      ) : (
+        <>
+          <div style={{ height: '200px' }}>
+            <MyResponsiveCalendarComponent data={calendarData} />
+          </div>
+
+          <div style={{ marginTop: '30px' }}>
+            <Table
+              columns={columns}
+              dataSource={tasksData}
+              pagination={{ pageSize: 5, showSizeChanger: false }}
+              size="small"
+              bordered
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 };

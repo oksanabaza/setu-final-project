@@ -51,8 +51,17 @@ func (t *Template) UnmarshalJSON(data []byte) error {
 }
 
 func GetTemplates(w http.ResponseWriter, r *http.Request) {
+	// Extract the search query parameter
+	nameQuery := r.URL.Query().Get("name")
+	var query string
+	if nameQuery != "" {
+		query = fmt.Sprintf("SELECT id, website_id, user_id, name, settings, created_at, scraping_type FROM templates WHERE name ILIKE '%%%s%%'", nameQuery)
+	} else {
+		query = "SELECT id, website_id, user_id, name, settings, created_at, scraping_type FROM templates"
+	}
+
 	// Query to get all templates from the database
-	rows, err := database.DB.Query("SELECT id, website_id, user_id, name, settings, created_at, scraping_type FROM templates")
+	rows, err := database.DB.Query(query)
 	if err != nil {
 		log.Printf("Error querying templates: %v", err)
 		http.Error(w, "Error querying templates", http.StatusInternalServerError)

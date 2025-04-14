@@ -83,6 +83,14 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Update the last login time in the database
+	_, err = database.DB.Exec("UPDATE users SET last_login = $1 WHERE user_id = $2", time.Now(), userID)
+	if err != nil {
+		log.Println("Error updating last_login:", err)
+		http.Error(w, "Error updating last login time", http.StatusInternalServerError)
+		return
+	}
+
 	// Token generation
 	token, err := GenerateJWT(credentials.Email)
 	if err != nil {

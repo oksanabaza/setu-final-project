@@ -289,3 +289,60 @@ func DeleteScrapingTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
+
+// GetAllTasksHandler retrieves all tasks from the database
+func GetAllTasksHandler(w http.ResponseWriter, r *http.Request) {
+	// Query to fetch all tasks
+	query := `
+		SELECT st.task_id, st.website_id, st.status, st.progress, st.started_at, st.completed_at, 
+		       st.user_id, w.url as website_url, st.name, st.category, st.priority, st.attempts_count, 
+		       st.last_error, st.schedule_cron, st.index_urls, 
+		       st.created_at, st.updated_at
+		FROM scraping_tasks st
+		JOIN websites w ON st.website_id = w.id;
+	`
+
+	// Prepare the slice to store all tasks
+	var tasks []ScrapingTask
+
+	// Execute the query and scan results into the tasks slice
+	rows, err := database.DB.Query(query)
+	if err != nil {
+		http.Error(w, "error fetching tasks", http.StatusInternalServerError)
+		log.Println("Error fetching tasks:", err)
+		return
+	}
+	defer rows.Close()
+
+	// Scan rows into the tasks slice
+	for rows.Next() {
+		var task ScrapingTask
+		err := rows.Scan(
+			&task.TaskID, &task.WebsiteID, &task.Status, &task.Progress, &task.StartedAt, &task.CompletedAt,
+			&task.UserID, &task.URL, &task.Name, &task.Category, &task.Priority, &task.AttemptsCount,
+			&task.LastError, &task.ScheduleCron, &task.IndexURLs,
+			&task.CreatedAt, &task.UpdatedAt,
+		)
+		if err != nil {
+			http.Error(w, "error scanning tasks", http.StatusInternalServerError)
+			log.Println("Error scanning tasks:", err)
+			return
+		}
+		tasks = append(tasks, task)
+	}
+
+	// Check if any tasks were found
+	if len(tasks) == 0 {
+		http.Error(w, "no tasks found", http.StatusNotFound)
+		return
+	}
+
+	// Return the tasks as JSON
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(tasks)
+	if err != nil {
+		http.Error(w, "error encoding response", http.StatusInternalServerError)
+		log.Println("Error encoding response:", err)
+	}
+}

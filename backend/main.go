@@ -13,24 +13,6 @@ import (
 	"github.com/rs/cors"
 )
 
-// type ScrapingTask struct {
-// 	TaskID       int       `json:"task_id" gorm:"primaryKey"`
-// 	UserID       int       `json:"user_id"`
-// 	WebsiteID    int       `json:"website_id"`
-// 	WebsiteURL   string    `json:"website_url"`
-// 	Name         string    `json:"name"`
-// 	Category     string    `json:"category"`
-// 	Status       string    `json:"status"`
-// 	Priority     int       `json:"priority"`
-// 	LastError    string    `json:"last_error,omitempty"`
-// 	ScheduleCron string    `json:"schedule_cron"`
-// 	IndexURLs    string    `json:"index_urls"`
-// 	CreatedAt    time.Time `json:"created_at"`
-// 	UpdatedAt    time.Time `json:"updated_at"`
-// 	CompletedAt  time.Time `json:"completed_at,omitempty"`
-// 	// TemplateID   int       `json:"template_id"`
-// }
-
 func main() {
 	// Load environment variables
 	config.LoadEnv()
@@ -68,10 +50,14 @@ func main() {
 	r.HandleFunc("/scraping-task/{task_id}", middleware.AuthMiddleware(handlers.DeleteScrapingTaskHandler)).Methods("DELETE")
 	r.HandleFunc("/scrape", middleware.AuthMiddleware(handlers.ScrapeHandler)).Methods("POST")
 	r.HandleFunc("/scraping-tasks", middleware.AuthMiddleware(handlers.GetAllScrapingTasksHandler)).Methods("GET")
+	// r.HandleFunc("/scraping-tasks", middleware.AuthMiddleware(handlers.GetTasksByUserHandler)).Methods("GET")
 	r.HandleFunc("/templates/{id}", middleware.AuthMiddleware(handlers.GetTemplateByID)).Methods("GET")
+	r.HandleFunc("/get-results", middleware.AuthMiddleware(handlers.GetAllResultsHandler)).Methods("GET")
 	r.HandleFunc("/get-results/{task_id}", middleware.AuthMiddleware(handlers.GetResultsHandler)).Methods("GET")
 	r.HandleFunc("/get-result/unique/{unique_id}", middleware.AuthMiddleware(handlers.GetSpecificResultHandler)).Methods("GET")
 	r.HandleFunc("/post-results", middleware.AuthMiddleware(handlers.PostResultsHandler)).Methods("POST")
+	r.HandleFunc("/user/{userId}", middleware.AuthMiddleware(handlers.GetUser)).Methods("GET")
+	// r.HandleFunc("/tasks", middleware.AdminOnlyMiddleware(handlers.GetAllTasksHandler)).Methods("GET")
 
 	// Add CORS middleware
 	handler := corsHandler.Handler(r)

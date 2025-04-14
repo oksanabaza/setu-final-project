@@ -79,6 +79,56 @@ func GetResultsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetAllResultsHandler handles GET requests to fetch all scraping results for any task_id
+func GetAllResultsHandler(w http.ResponseWriter, r *http.Request) {
+	// Query to fetch all results from the database
+	query := `SELECT id, task_id, result, unique_id, created_at, updated_at 
+	          FROM scraping_results`
+
+	rows, err := database.DB.Query(query)
+	if err != nil {
+		log.Printf("Error fetching all results: %v", err)
+		http.Error(w, "Failed to fetch all results", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var results []ScrapingResult
+
+	// Iterate over all rows and append each result to the results slice
+	for rows.Next() {
+		var result ScrapingResult
+		err := rows.Scan(&result.ID, &result.TaskID, &result.Result, &result.UniqueID, &result.CreatedAt, &result.UpdatedAt)
+		if err != nil {
+			log.Printf("Error scanning row: %v", err)
+			http.Error(w, "Error scanning row", http.StatusInternalServerError)
+			return
+		}
+
+		// Handle the case where UniqueID is NULL
+		if !result.UniqueID.Valid {
+			result.UniqueID.String = ""
+		}
+
+		// Append each result to the results slice
+		results = append(results, result)
+	}
+
+	// Check if there were no results
+	if len(results) == 0 {
+		log.Printf("No results found")
+		http.Error(w, "No results found", http.StatusNotFound)
+		return
+	}
+
+	// Set the content type to application/json and return the results as JSON
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(map[string]interface{}{"Results": results}); err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	}
+}
+
 // GetSpecificResultHandler handles GET requests for a specific scraping result by id or unique_id
 func GetSpecificResultHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the task_id and result identifier from the URL path parameters

@@ -75,7 +75,7 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     height: '100vh', 
-    background: '#f0f2f5', 
+    background: '#001529', 
     boxSizing: 'border-box',
     margin:0,
     padding:0
@@ -84,7 +84,7 @@ const styles = {
     width: '100%',
     maxWidth: '400px', 
     padding: '20px',
-    background: '#fff',
+    background: '#f0f2f5', 
     borderRadius: '8px',
     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', 
     boxSizing: 'border-box',
