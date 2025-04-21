@@ -117,7 +117,7 @@ const Dashboard = ({ onLogout }) => {
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const response = await fetch('http://localhost:8080/get-results', {
+        const response = await fetch('https://setu-final-project.onrender.com/get-results', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

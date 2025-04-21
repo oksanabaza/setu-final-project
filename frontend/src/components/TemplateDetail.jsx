@@ -16,11 +16,11 @@ const TemplateDetails = ({ onLogout }) => {
     const fetchData = async () => {
       try {
         const [templateResponse, websitesResponse] = await Promise.all([
-          fetch(`http://localhost:8080/templates/${id}`, {
+          fetch(`https://setu-final-project.onrender.com/templates/${id}`, {
             method: 'GET',
             headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
           }),
-          fetch('http://localhost:8080/websites', {
+          fetch('https://setu-final-project.onrender.com/websites', {
             method: 'GET',
             headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
           }),
@@ -113,7 +113,7 @@ const TemplateDetails = ({ onLogout }) => {
     };
 
     try {
-      const response = await fetch("http://localhost:8080/scrape", {
+      const response = await fetch("https://setu-final-project.onrender.com/scrape", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

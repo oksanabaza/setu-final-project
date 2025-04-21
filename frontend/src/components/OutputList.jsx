@@ -22,7 +22,7 @@ const OutputList = () => {
 
     setLoading(true);
 
-    fetch(`http://localhost:8080/get-results/${task_id}`, {
+    fetch(`https://setu-final-project.onrender.com/get-results/${task_id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -105,7 +105,7 @@ const OutputList = () => {
   useEffect(() => {
     let isMounted = true;
   
-    fetch(`http://localhost:8080/scraping-task/${task_id}`, {
+    fetch(`https://setu-final-project.onrender.com/scraping-task/${task_id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

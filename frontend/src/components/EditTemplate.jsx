@@ -38,7 +38,7 @@ const EditTemplate = () => {
       }
 
       try {
-        const response = await fetch(`http://localhost:8080/templates/${id}`, {
+        const response = await fetch(`https://setu-final-project.onrender.com/templates/${id}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -75,7 +75,7 @@ const EditTemplate = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:8080/templates/${id}`, {
+      const response = await fetch(`https://setu-final-project.onrender.com/templates/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

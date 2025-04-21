@@ -38,32 +38,6 @@ func LoadEnv() {
 	}
 }
 
-// Middleware for auth
-// func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		tokenStr := r.Header.Get("Authorization")
-// 		if tokenStr == "" {
-// 			http.Error(w, "token is missing", http.StatusUnauthorized)
-// 			return
-// 		}
-
-// 		tokenStr = tokenStr[len("Bearer "):]
-
-// 		claims := &Claims{}
-// 		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
-// 			return jwtKey, nil
-// 		})
-
-// 		if err != nil || !token.Valid {
-// 			log.Println("Error validating token:", err)
-// 			http.Error(w, "invalid token", http.StatusUnauthorized)
-// 			return
-// 		}
-
-// 		next(w, r)
-// 	}
-// }
-
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenStr := r.Header.Get("Authorization")
