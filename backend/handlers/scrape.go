@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/antchfx/htmlquery"
@@ -53,25 +51,25 @@ func ScrapeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	saveToJSON(results)
+	// saveToJSON(results)
 
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(results)
 }
 
-func saveToJSON(results []ScrapeResponse) {
-	filename := fmt.Sprintf("scraped_data_%s.json", time.Now().Format("2006-01-02_15-04-05"))
-	file, err := os.Create(filename)
-	if err != nil {
-		log.Println("Error creating JSON file:", err)
-		return
-	}
-	defer file.Close()
+// func saveToJSON(results []ScrapeResponse) {
+// 	filename := fmt.Sprintf("scraped_data_%s.json", time.Now().Format("2006-01-02_15-04-05"))
+// 	file, err := os.Create(filename)
+// 	if err != nil {
+// 		log.Println("Error creating JSON file:", err)
+// 		return
+// 	}
+// 	defer file.Close()
 
-	encoder := json.NewEncoder(file)
-	encoder.SetIndent("", "  ")
-	_ = encoder.Encode(results)
-}
+// 	encoder := json.NewEncoder(file)
+// 	encoder.SetIndent("", "  ")
+// 	_ = encoder.Encode(results)
+// }
 
 func scrapeShallow(req ScrapeRequest) []ScrapeResponse {
 	c := colly.NewCollector()
