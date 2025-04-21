@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"database/sql"
+	"fullstack-scraper/config"
 	"log"
 	"net/http"
 	"os"
@@ -59,9 +60,10 @@ func LoadEnv() {
 // 			return
 // 		}
 
-//			next(w, r)
-//		}
-//	}
+// 		next(w, r)
+// 	}
+// }
+
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenStr := r.Header.Get("Authorization")
@@ -69,23 +71,15 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			http.Error(w, "token is missing", http.StatusUnauthorized)
 			return
 		}
-
 		tokenStr = tokenStr[len("Bearer "):]
 
 		claims := &Claims{}
 		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
-			log.Println("Token header:", token.Header)
-			return jwtKey, nil
+			return config.JWTKey, nil
 		})
 
-		if err != nil {
-			log.Println("Error parsing token:", err)
-			http.Error(w, "invalid token", http.StatusUnauthorized)
-			return
-		}
-
-		if !token.Valid {
-			log.Println("Invalid token: token is not valid")
+		if err != nil || !token.Valid {
+			log.Println("Error validating token:", err)
 			http.Error(w, "invalid token", http.StatusUnauthorized)
 			return
 		}
