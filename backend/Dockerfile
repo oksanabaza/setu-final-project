@@ -18,6 +18,9 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o app .
 # Stage 2: Run the Go binary in a smaller environment
 FROM debian:bullseye-slim
 
+# Install CA certificates
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+
 # Create a non-root user
 RUN useradd -m appuser
 
