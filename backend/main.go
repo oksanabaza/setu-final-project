@@ -16,6 +16,7 @@ import (
 func main() {
 	// Load environment variables
 	config.LoadEnv()
+	log.Println("Loaded JWT secret:", string(config.JWTKey))
 
 	// Initialize database
 	database.InitDB()
