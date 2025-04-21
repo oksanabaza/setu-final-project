@@ -12,3 +12,6 @@ This project consists of a full-stack web scraper application with the following
 - **Backend (API):** [https://setu-final-project.onrender.com](https://setu-final-project.onrender.com)
 
 
+## Project Poster
+
+https://poster-xhmh.onrender.com/
