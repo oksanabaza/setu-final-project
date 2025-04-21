@@ -14,7 +14,7 @@ const RecentTasks = () => {
   useEffect(() => {
     const fetchRecentTasks = async () => {
       try {
-        const response = await fetch("http://localhost:8080/scraping-tasks", {
+        const response = await fetch("https://setu-final-project.onrender.com/scraping-tasks", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

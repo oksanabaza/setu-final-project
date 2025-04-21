@@ -1,4 +1,4 @@
-// const API_URL = 'http://localhost:8080';
+// const API_URL = 'https://setu-final-project.onrender.com';
 
 // export const getToken = () => localStorage.getItem("token");
 
@@ -57,7 +57,7 @@
 //   return response.json();
 // }
 // export const fetchTemplateById = async (id) => {
-//   const response = await fetch(`http://localhost:8080/templates/${id}`);
+//   const response = await fetch(`https://setu-final-project.onrender.com/templates/${id}`);
 //   if (!response.ok) {
 //     throw new Error("Failed to fetch template.");
 //   }

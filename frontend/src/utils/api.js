@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:8080'; 
+const API_URL = 'https://setu-final-project.onrender.com'; 
 
 
 export const fetchWithAuth = async (url, options = {}) => {
@@ -25,7 +25,7 @@ export const fetchWithAuth = async (url, options = {}) => {
 };
 
 export const login = async (email, password) => {
-    const response = await fetch('http://localhost:8080/login', {
+    const response = await fetch('https://setu-final-project.onrender.com/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -45,7 +45,7 @@ export const login = async (email, password) => {
   };
   
 export const signup = async (email, password) => {
-    const response = await fetch('http://localhost:8080/signup', {
+    const response = await fetch('https://setu-final-project.onrender.com/signup', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -104,7 +104,7 @@ export const removeToken =()=>{
 }
 export const fetchTemplateById = async (id) => {
   const token = localStorage.getItem('token'); 
-  const response = await fetch(`http://localhost:8080/templates/${id}`, {
+  const response = await fetch(`https://setu-final-project.onrender.com/templates/${id}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,

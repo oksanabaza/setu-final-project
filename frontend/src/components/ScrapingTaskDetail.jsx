@@ -24,7 +24,7 @@ const ScrapingTaskDetails = ({ onLogout }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const scrapingTaskResponse = await fetch(`http://localhost:8080/scraping-task/${id}`, {
+        const scrapingTaskResponse = await fetch(`https://setu-final-project.onrender.com/scraping-task/${id}`, {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         });
@@ -34,7 +34,7 @@ const ScrapingTaskDetails = ({ onLogout }) => {
         setScrapingTask(scrapingTaskData);
         setLinks(scrapingTaskData.index_urls ? scrapingTaskData.index_urls.split(',') : []);
 
-        const templateResponse = await fetch(`http://localhost:8080/templates/${scrapingTaskData.template_id}`, {
+        const templateResponse = await fetch(`https://setu-final-project.onrender.com/templates/${scrapingTaskData.template_id}`, {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         });
@@ -43,7 +43,7 @@ const ScrapingTaskDetails = ({ onLogout }) => {
         const templateData = await templateResponse.json();
         setTemplate(templateData);
 
-        const allTemplatesResponse = await fetch('http://localhost:8080/templates', {
+        const allTemplatesResponse = await fetch('https://setu-final-project.onrender.com/templates', {
           method: 'GET',
           headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         });
@@ -91,7 +91,7 @@ const ScrapingTaskDetails = ({ onLogout }) => {
         wrapper: template.wrapper.String,
       };
   
-      const response = await fetch('http://localhost:8080/scrape', {
+      const response = await fetch('https://setu-final-project.onrender.com/scrape', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -104,7 +104,7 @@ const ScrapingTaskDetails = ({ onLogout }) => {
       const scrapedData = await response.json();
       setTaskOutputs(prevOutputs => [...prevOutputs, scrapedData]);
   
-      const saveDataResponse = await fetch('http://localhost:8080/post-results', {
+      const saveDataResponse = await fetch('https://setu-final-project.onrender.com/post-results', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -148,7 +148,7 @@ const ScrapingTaskDetails = ({ onLogout }) => {
         index_urls: links.join(','),
       };
 
-      const response = await fetch(`http://localhost:8080/scraping-task/${id}`, {
+      const response = await fetch(`https://setu-final-project.onrender.com/scraping-task/${id}`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedTask),

@@ -13,7 +13,7 @@ const TemplateList = ({ onLogout }) => {
   useEffect(() => {
     const fetchTemplates = async () => {
       try {
-        const response = await fetch('http://localhost:8080/scraping-tasks', {
+        const response = await fetch('https://setu-final-project.onrender.com/scraping-tasks', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ const TemplateList = ({ onLogout }) => {
   }, [token]);
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`http://localhost:8080/scraping-task/${id}`, {
+      const response = await fetch(`https://setu-final-project.onrender.com/scraping-task/${id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,

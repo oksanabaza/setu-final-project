@@ -17,7 +17,7 @@ const TemplateList = () => {
   useEffect(() => {
     const fetchTemplates = async () => {
       try {
-        const response = await fetch(`http://localhost:8080/templates?name=${searchQuery}`, {
+        const response = await fetch(`https://setu-final-project.onrender.com/templates?name=${searchQuery}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ const TemplateList = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`http://localhost:8080/templates/${id}`, {
+      const response = await fetch(`https://setu-final-project.onrender.com/templates/${id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

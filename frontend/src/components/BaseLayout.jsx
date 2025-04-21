@@ -30,7 +30,7 @@ const BaseLayout = ({ onLogout }) => {
   };
 
   useEffect(() => {
-    fetch(`http://localhost:8080/user/${userName}`, {
+    fetch(`https://setu-final-project.onrender.com/user/${userName}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,

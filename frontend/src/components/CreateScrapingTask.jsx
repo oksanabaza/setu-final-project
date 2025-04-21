@@ -17,7 +17,7 @@ const CreateScrapingTask = () => {
       }
 
       try {
-        const response = await fetch('http://localhost:8080/templates', {
+        const response = await fetch('https://setu-final-project.onrender.com/templates', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -44,7 +44,7 @@ const CreateScrapingTask = () => {
       }
 
       try {
-        const response = await fetch('http://localhost:8080/websites', {
+        const response = await fetch('https://setu-final-project.onrender.com/websites', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -86,7 +86,7 @@ const CreateScrapingTask = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:8080/scraping-tasks/create', {
+      const response = await fetch('https://setu-final-project.onrender.com/scraping-tasks/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

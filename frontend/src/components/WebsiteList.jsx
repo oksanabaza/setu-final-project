@@ -16,7 +16,7 @@ const WebsiteList = ({ onLogout }) => {
 
 const fetchWebsites = async () => {
   try {
-    const response = await fetchWithAuth('http://localhost:8080/websites', {
+    const response = await fetchWithAuth('https://setu-final-project.onrender.com/websites', {
       method: 'GET',
     });
 
@@ -42,7 +42,7 @@ const fetchWebsites = async () => {
 
   const handleAddWebsite = async (values) => {
     try {
-      const response = await fetch('http://localhost:8080/websites/create', {
+      const response = await fetch('https://setu-final-project.onrender.com/websites/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ const fetchWebsites = async () => {
 
   const handleUpdateWebsite = async (values) => {
     try {
-      const response = await fetch(`http://localhost:8080/websites/${currentWebsite.id}`, {
+      const response = await fetch(`https://setu-final-project.onrender.com/websites/${currentWebsite.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -101,7 +101,7 @@ const fetchWebsites = async () => {
   
   const handleDeleteWebsite = async (id) => {
     try {
-      const response = await fetch(`http://localhost:8080/websites/${id}`, {
+      const response = await fetch(`https://setu-final-project.onrender.com/websites/${id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

@@ -18,7 +18,7 @@ const RecentTaskDetails = () => {
 
     setLoading(true); 
 
-    fetch(`http://localhost:8080/get-result/unique/${unique_id}`, {
+    fetch(`https://setu-final-project.onrender.com/get-result/unique/${unique_id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
