@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { Table, Card, Typography, Spin, Tabs } from "antd";
-import ReactJson from "react-json-view";
+// import ReactJson from "react-json-view";
+import { JsonViewer } from '@textea/json-viewer';
 
 const { Title } = Typography;
 const { TabPane } = Tabs;
@@ -101,13 +102,12 @@ const RecentTaskDetails = () => {
               background: "rgba(0,0,0,0.88)",
             }}
           >
-            <ReactJson
-              src={taskDetails}
-              theme="monokai"
-              collapsed={1}
-              displayDataTypes={false}
-              style={{ height: "100%", overflow: "auto" }}
-            />
+        <JsonViewer
+          value={taskDetails}
+          theme="dark"
+          defaultExpandLevel={1}
+          style={{ height: "100%", overflow: "auto" }}
+        />
           </div>
         </Card>
       </TabPane>
